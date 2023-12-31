@@ -1,40 +1,60 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-radius = 8.0
+escape_radius_squared = 8.0
 points = 1000000
-iterations = 100
+iterations = 1000
 dimensions = (800, 800)
-x_limits = (-2 * np.pi, 2 * np.pi)
-y_limits = (-2 * np.pi, 2 * np.pi)
+x_limits = (-2.0, 2.0)
+y_limits = (-2.0, 2.0)
+
+I = np.array([
+    [ 1,  0],
+    [ 0,  1],
+])
+
+R = np.array([
+    [ 0,  1],
+    [ 1,  0],
+])
+
+B = np.array([
+    [ 0,  1],
+    [-1,  0],
+])
+
+G = np.array([
+    [ 1,  0],
+    [ 0, -1],
+])
 
 def generate():
     pixel_array = np.zeros(dimensions, dtype=int)
 
     for _ in range(points):
+        path = []
+
         c_angle = np.random.uniform(0, 2 * np.pi)
         c_radius = np.random.uniform(0, x_limits[1])
         
         cx = c_radius * np.cos(c_angle)
         cy = c_radius * np.sin(c_angle)
 
-        zx = cx
-        zy = cy
+        C = cx * I + cy * B
 
-        path = []
-        
+        z = C
+
         for _ in range(iterations):
-            zx = zx * zx - zy * zy + cx
-            zy = 2.0 * zx * zy + cy
+            z = z @ z + C
 
-            magnitude_squared = zx * zx + zy * zy
+            magnitude_squared = np.sum(np.square(z))
 
-            if magnitude_squared < radius:
-                path.append((zx, zy))
+            if magnitude_squared < escape_radius_squared:
+                path.append(z)
             else:
                 for point in path:
-                    cell_x = int((point[0] - x_limits[0]) / (x_limits[1] - x_limits[0]) * (dimensions[0] - 1))
-                    cell_y = int((point[1] - y_limits[0]) / (y_limits[1] - y_limits[0]) * (dimensions[1] - 1))
+                    cell_x = int((point[0, 0] - x_limits[0]) / (x_limits[1] - x_limits[0]) * (dimensions[0] - 1))
+                    cell_y = int((point[0, 1] - y_limits[0]) / (y_limits[1] - y_limits[0]) * (dimensions[1] - 1))
 
                     if cell_x >= 0 and cell_x <= dimensions[0] - 1 and cell_y >= 0 and cell_y <= dimensions[1] - 1:
                         pixel_array[cell_x, cell_y] += 1
