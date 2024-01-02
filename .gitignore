@@ -49,3 +49,5 @@ Thumbs.db
 # NumPy
 __pycache__/
 *.pyc
+
+output/*/frames/*

@@ -11,7 +11,7 @@ import imageio
 from fm.parameter import Parameter
 
 ESCAPE_RADIUS_SQUARED = 2.0 ** 2
-POINTS = 2 ** 19
+POINTS = 2 ** 20
 ITERATIONS = 2 ** 5
 FRAME_SIZE = 800
 DOMAIN_SIZE = 4.0
@@ -109,17 +109,17 @@ def generate_animation():
     timestamp = datetime.now().strftime('%Y_%m_%d_%H_%M')
 
     directory = f'output/{timestamp}'
-    os.makedirs(directory, exist_ok=True)
+    os.makedirs(directory + '/frames', exist_ok=True)
 
     parameters = [
-        Parameter(coefficient=1.0, exponent=3),
+        Parameter(coefficient=1.0, exponent=4),
         Parameter(coefficient=0.0, exponent=2)
     ]
 
     pixel_arrays = []
 
     angle = 0.0
-    frame_count = 100
+    frame_count = 200
 
     for frame in range(frame_count):
         parameters[0].coefficient = math.cos(angle)
