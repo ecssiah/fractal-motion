@@ -32,7 +32,8 @@ class Generator:
     def calculate(self):
         for point_index in range(constants.POINTS):
             if point_index % 10000 == 0:
-                print(f'{int(point_index / constants.POINTS * 100)}%')
+                percent_complete = point_index / constants.POINTS * 100
+                print(f'\r{percent_complete:.1f}% ', end='', flush=True)
 
             path = []
 
@@ -78,6 +79,8 @@ class Generator:
 
                     break
 
+        print('\r100.0% ', end='', flush=True)
+        print()
 
     def normalize(self):
         self.max_value = np.max(self.counts)
