@@ -15,12 +15,12 @@ def generate_animation():
     visualizer = Visualizer()
 
     parameters1 = [
-        Parameter( 1.0, 3),
+        Parameter( 1.0, 4),
         Parameter( 1.0, 2)
     ]
 
     parameters2 = [
-        Parameter( 1.0, 3),
+        Parameter( 1.0, 4),
         Parameter( 1.0, 2)
     ]
 
@@ -33,11 +33,11 @@ def generate_animation():
         parameters1[0].coefficient = math.cos(angle1)
         parameters1[1].coefficient = math.sin(angle1)
 
-        parameters2[0].coefficient = math.cos(angle2)
-        parameters2[1].coefficient = math.sin(angle2)
+        parameters2[0].coefficient = math.cos(angle2 + np.pi / 4)
+        parameters2[1].coefficient = math.sin(angle2 + np.pi / 4)
 
         angle1 += (2.0 * np.pi / constants.FRAME_COUNT)
-        angle2 -= (2.0 * np.pi / constants.FRAME_COUNT)
+        angle2 += (2.0 * np.pi / constants.FRAME_COUNT)
 
         print(f'\nFrame {frame_number + 1}/{constants.FRAME_COUNT}')
 
@@ -69,9 +69,10 @@ def generate_animation():
 
 
 def elapsed_time_to_time_string(elapsed_seconds):
-    minutes, seconds = divmod(elapsed_seconds, 60)
+    hours, remainder = divmod(elapsed_seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
 
-    return f"{int(minutes)}:{int(seconds):02d}"
+    return f"{int(hours)}:{int(minutes):02d}:{int(seconds):02d}"
 
 
 def main():
