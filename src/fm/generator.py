@@ -10,13 +10,18 @@ from fm.parameter import Parameter
 
 class Generator:
     def __init__(self, parameters: List[Parameter]) -> None:
-        self.border_regions = []
+        self.border = []
         self.parameters = parameters
+        self.weights = np.array([1.0, 0.0, 0.0])[:, np.newaxis, np.newaxis]
 
         self.counts = np.zeros((constants.FRAME_SIZE, constants.FRAME_SIZE), dtype=np.uint8)
         self.histogram = np.zeros((constants.FRAME_SIZE, constants.FRAME_SIZE), dtype=np.float64)
 
-        self.find_border_regions()
+
+    def set_weights(self, red, green, blue):
+        self.weights[0, 0, 0] = red
+        self.weights[1, 0, 0] = green
+        self.weights[2, 0, 0] = blue
 
 
     def test_escape(self, a, b):
@@ -41,11 +46,13 @@ class Generator:
         return False
 
 
-    def find_border_regions(self):
+    def find_border(self):
         print('Finding Border Regions')
 
-        for j in range(constants.REGION_COUNT):
-            percent_complete = j / constants.REGION_COUNT * 100
+        half_region_count = constants.REGION_COUNT // 2 + 1
+
+        for j in range(half_region_count):
+            percent_complete = j / half_region_count * 100
             print(f'\r{percent_complete:.1f}% ', end='', flush=True)
 
             for i in range(constants.REGION_COUNT):
@@ -60,14 +67,15 @@ class Generator:
                 num_of_escapes += 1 if self.test_escape(a + constants.REGION_SIZE, b + constants.REGION_SIZE) else 0
 
                 if num_of_escapes == 2 or num_of_escapes == 3:
-                    self.border_regions.append((a, b))
+                    self.border.append((a,  b))
+                    self.border.append((a, -b))
 
         print('\r100.0% ', end='', flush=True)
         print()
 
 
     def get_seed(self):
-        region = random.choice(self.border_regions)
+        region = random.choice(self.border)
 
         a = np.random.uniform(region[0], region[0] + constants.REGION_SIZE)
         b = np.random.uniform(region[1], region[1] + constants.REGION_SIZE)
@@ -85,11 +93,6 @@ class Generator:
     #     return a, b
 
 
-    def run(self):
-        self.calculate()
-        self.normalize()
-
-    
     def calculate(self):
         print('Calculating Paths')
 
@@ -141,6 +144,8 @@ class Generator:
                             self.counts[cell_x, symmetric_cell_y] += 1
 
                     break
+
+        self.normalize()
 
         print('\r100.0% ', end='', flush=True)
         print()

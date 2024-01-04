@@ -11,7 +11,7 @@ from fm.parameter import Parameter
 from fm.visualizer import Visualizer
 
 
-def generate_animation():
+def render_animation():
     visualizer = Visualizer()
 
     parameters1 = [
@@ -42,33 +42,33 @@ def generate_animation():
         print(f'\nFrame {frame_number + 1}/{constants.FRAME_COUNT}')
 
         generator1 = Generator(parameters1)
-        generator1.run()
-
-        # visualizer.generate_border_regions(generator1.border_regions, frame_number=frame_number)
+        generator1.set_weights(0.5, 0.5, 0.0)
+        generator1.find_border()
+        generator1.calculate()
 
         generator2 = Generator(parameters2)
-        generator2.run()
-
-        # visualizer.generate_border_regions(generator2.border_regions, frame_number=frame_number)
-
+        generator2.set_weights(0.0, 0.5, 0.5)
+        generator2.find_border()
+        generator2.calculate()
+        
         histogram_pixel1 = (generator1.histogram * 255).astype(np.uint8)
         histogram_pixel2 = (generator2.histogram * 255).astype(np.uint8)
 
-        weights_generator1 = np.array([0.333, 0.333, 0.333])[:, np.newaxis, np.newaxis]
-        weights_generator2 = np.array([0.333, 0.333, 0.333])[:, np.newaxis, np.newaxis]
-
         pixel_array = (
-            weights_generator1 * histogram_pixel1 +
-            weights_generator2 * histogram_pixel2
-        ).astype(np.uint8)
+            generator1.weights * histogram_pixel1 + 
+            generator2.weights * histogram_pixel2
+        )
 
+        pixel_array = pixel_array.astype(np.uint8)
         pixel_array = pixel_array.transpose(1, 2, 0)
 
         pixel_arrays.append(pixel_array)
 
-        visualizer.generate_frame(pixel_array, frame_number=frame_number)
+        visualizer.render_border(generator1.border, label=f'gen1_{frame_number:06d}')
+        visualizer.render_border(generator2.border, label=f'gen2_{frame_number:06d}')
+        visualizer.render_frame(pixel_array, label=f'{frame_number:06d}')
 
-    visualizer.generate_animation(pixel_arrays)
+    visualizer.render_animation(pixel_arrays)
 
 
 def elapsed_time_to_time_string(elapsed_seconds):
@@ -81,7 +81,7 @@ def elapsed_time_to_time_string(elapsed_seconds):
 def main():
     start_time = time.time()
 
-    generate_animation()
+    render_animation()
 
     elapsed_time = time.time() - start_time
 

@@ -12,35 +12,34 @@ class Visualizer:
         self.directory = f'output/{self.timestamp}'
 
         os.makedirs(self.directory, exist_ok=True)
+        os.makedirs(f'{self.directory}/frames', exist_ok=True)
+        os.makedirs(f'{self.directory}/borders', exist_ok=True)
 
 
-    def generate_border_regions(self, border_regions, frame_number=None):
+    def render_border(self, border, label):
         frame_to_region_ratio = constants.FRAME_SIZE / constants.REGION_COUNT
 
         pixel_array = np.zeros((constants.FRAME_SIZE, constants.FRAME_SIZE), dtype=np.uint8)
 
-        for y in range(constants.FRAME_SIZE):
+        half_frame_size = constants.FRAME_SIZE // 2
+
+        for y in range(half_frame_size):
             for x in range(constants.FRAME_SIZE):
                 region_x = x // frame_to_region_ratio * constants.REGION_SIZE - constants.DOMAIN_RADIUS
                 region_y = y // frame_to_region_ratio * constants.REGION_SIZE - constants.DOMAIN_RADIUS
 
-                if (region_x, region_y) in border_regions:
+                if (region_x, region_y) in border:
                     pixel_array[x, y] = 255
+                    pixel_array[x, 2 * half_frame_size - y - 1] = 255
 
-        if frame_number == None:
-            imageio.imwrite(f'{self.directory}/border_regions.png', pixel_array)
-        else:
-            imageio.imwrite(f'{self.directory}/border_regions_{frame_number}.png', pixel_array)
+        imageio.imwrite(f'{self.directory}/borders/{label}.png', pixel_array)
 
 
-    def generate_frame(self, pixel_array, frame_number=None):
-        if frame_number == None:
-            imageio.imwrite(f'{self.directory}/frame.png', pixel_array)
-        else:
-            imageio.imwrite(f'{self.directory}/frame_{frame_number:04d}.png', pixel_array)
+    def render_frame(self, pixel_array, label):
+        imageio.imwrite(f'{self.directory}/frames/{label}.png', pixel_array)
 
 
-    def generate_animation(self, pixel_arrays):
-        filename = f'{self.directory}/fractal_motion_{self.timestamp}.gif'
+    def render_animation(self, pixel_arrays):
+        filename = f'{self.directory}/fractal_{self.timestamp}.gif'
 
         imageio.mimsave(filename, pixel_arrays, duration=100, loop=0)
