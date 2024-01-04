@@ -44,14 +44,18 @@ def generate_animation():
         generator1 = Generator(parameters1)
         generator1.run()
 
+        # visualizer.generate_border_regions(generator1.border_regions, frame_number=frame_number)
+
         generator2 = Generator(parameters2)
         generator2.run()
+
+        # visualizer.generate_border_regions(generator2.border_regions, frame_number=frame_number)
 
         histogram_pixel1 = (generator1.histogram * 255).astype(np.uint8)
         histogram_pixel2 = (generator2.histogram * 255).astype(np.uint8)
 
-        weights_generator1 = np.array([0.5, 0.0, 0.5])[:, np.newaxis, np.newaxis]
-        weights_generator2 = np.array([0.0, 0.5, 0.5])[:, np.newaxis, np.newaxis]
+        weights_generator1 = np.array([0.333, 0.333, 0.333])[:, np.newaxis, np.newaxis]
+        weights_generator2 = np.array([0.333, 0.333, 0.333])[:, np.newaxis, np.newaxis]
 
         pixel_array = (
             weights_generator1 * histogram_pixel1 +
@@ -62,8 +66,7 @@ def generate_animation():
 
         pixel_arrays.append(pixel_array)
 
-        if frame_number == 0:
-            visualizer.generate_frame(pixel_array)
+        visualizer.generate_frame(pixel_array, frame_number=frame_number)
 
     visualizer.generate_animation(pixel_arrays)
 
