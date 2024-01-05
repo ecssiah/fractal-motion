@@ -26,7 +26,7 @@ class Generator:
         self.weights[2, 0, 0] = blue / sum
 
 
-    def test_escape(self, a, b):
+    def in_set(self, a, b):
         C = a * chromogeometry.IDENTITY + b * chromogeometry.BLUE
 
         z = C
@@ -40,12 +40,12 @@ class Generator:
 
             z += C
 
-            magnitude_squared = np.sum(np.square(z[:, 0]))
+            quadrance = np.sum(np.square(z[:, 0]))
 
-            if magnitude_squared > constants.ESCAPE_RADIUS_SQUARED:
-                return True
+            if quadrance > constants.ESCAPE_QUADRANCE:
+                return False
             
-        return False
+        return True
 
 
     def find_border(self):
@@ -61,12 +61,14 @@ class Generator:
                 a = constants.REGION_SIZE * i - constants.DOMAIN_RADIUS
                 b = constants.REGION_SIZE * j - constants.DOMAIN_RADIUS
 
-                num_of_escapes = 0
+                corners = [
+                    (0,                     0),
+                    (constants.REGION_SIZE, 0),
+                    (0,                     constants.REGION_SIZE),
+                    (constants.REGION_SIZE, constants.REGION_SIZE)
+                ]
 
-                num_of_escapes += 1 if self.test_escape(a, b) else 0
-                num_of_escapes += 1 if self.test_escape(a + constants.REGION_SIZE, b) else 0
-                num_of_escapes += 1 if self.test_escape(a, b + constants.REGION_SIZE) else 0
-                num_of_escapes += 1 if self.test_escape(a + constants.REGION_SIZE, b + constants.REGION_SIZE) else 0
+                num_of_escapes = sum(0 if self.in_set(a + x, b + y) else 1 for x, y in corners)
 
                 if num_of_escapes == 2 or num_of_escapes == 3:
                     self.border.append((a,  b))
@@ -120,9 +122,9 @@ class Generator:
 
                 z += C
 
-                magnitude_squared = np.sum(np.square(z[:, 0]))
+                quadrance = np.sum(np.square(z[:, 0]))
 
-                if magnitude_squared <= constants.ESCAPE_RADIUS_SQUARED:
+                if quadrance <= constants.ESCAPE_QUADRANCE:
                     path.append(z)
                 else:
                     for point in path:

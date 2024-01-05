@@ -15,8 +15,8 @@ def render_animation():
     visualizer = Visualizer()
 
     parameters1 = [
-        Parameter( 1.0, 4),
-        Parameter( 1.0, 2)
+        Parameter( 1.0, 5),
+        Parameter( 1.0, 4)
     ]
 
     parameters2 = [
@@ -30,6 +30,8 @@ def render_animation():
     pixel_arrays = []
 
     for frame_number in range(constants.FRAME_COUNT):
+        print(f'\nFrame {frame_number + 1}/{constants.FRAME_COUNT}')
+
         parameters1[0].coefficient = math.cos(angle1)
         parameters1[1].coefficient = math.sin(angle1)
 
@@ -39,17 +41,15 @@ def render_animation():
         angle1 += (2.0 * np.pi / constants.FRAME_COUNT)
         angle2 += (2.0 * np.pi / constants.FRAME_COUNT)
 
-        print(f'\nFrame {frame_number + 1}/{constants.FRAME_COUNT}')
-
         generator1 = Generator(parameters1)
-        generator1.set_weights(0.75, 0.25, 0.0)
         generator1.find_border()
         generator1.calculate()
+        generator1.set_weights(0.75, 0.25, 0.0)
 
         generator2 = Generator(parameters2)
-        generator2.set_weights(0.0, 0.25, 0.75)
         generator2.find_border()
         generator2.calculate()
+        generator2.set_weights(0.0, 0.25, 0.75)
         
         histogram_pixel1 = (generator1.histogram * 255).astype(np.uint8)
         histogram_pixel2 = (generator2.histogram * 255).astype(np.uint8)
@@ -74,8 +74,8 @@ def render_animation():
 
 
 def elapsed_time_to_time_string(elapsed_seconds):
-    hours, remainder = divmod(elapsed_seconds, 3600)
-    minutes, seconds = divmod(remainder, 60)
+    hours, seconds = divmod(elapsed_seconds, 3600)
+    minutes, seconds = divmod(seconds, 60)
 
     return f"{int(hours)}:{int(minutes):02d}:{int(seconds):02d}"
 
