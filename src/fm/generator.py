@@ -1,12 +1,12 @@
-import math
 import random
-from typing import List
+from typing import List, Tuple
 
 import numpy as np
 
 from fm import constants
 from fm import chromogeometry
 from fm.parameter import Parameter
+
 
 class Generator:
     def __init__(self, parameters: List[Parameter]) -> None:
@@ -18,7 +18,7 @@ class Generator:
         self.histogram = np.zeros((constants.FRAME_SIZE, constants.FRAME_SIZE), dtype=np.float64)
 
 
-    def set_weights(self, red, green, blue):
+    def set_weights(self, red: float, green: float, blue: float) -> None:
         sum = red + green + blue
 
         self.weights[0, 0, 0] = red / sum
@@ -26,17 +26,17 @@ class Generator:
         self.weights[2, 0, 0] = blue / sum
 
 
-    def in_set(self, a, b):
+    def in_set(self, a: float, b: float) -> bool:
         C = a * chromogeometry.IDENTITY + b * chromogeometry.BLUE
 
         z = C
 
         for _ in range(constants.ITERATIONS):
-            z_conjugate = chromogeometry.conjugate(z)
+            z_adjugate = chromogeometry.adjugate(z)
             z = 0
 
             for parameter in self.parameters:
-                z += parameter.coefficient * np.linalg.matrix_power(z_conjugate, parameter.exponent)
+                z += parameter.coefficient * np.linalg.matrix_power(z_adjugate, parameter.exponent)
 
             z += C
 
@@ -48,7 +48,7 @@ class Generator:
         return True
 
 
-    def find_border(self):
+    def find_border(self) -> None:
         print('Calculating Borders')
 
         half_region_count = constants.REGION_COUNT // 2 + 1
@@ -78,7 +78,7 @@ class Generator:
         print()
 
 
-    def get_random_seed(self):
+    def get_random_seed(self) -> Tuple[float, float]:
         angle = np.random.uniform(0, 2 * np.pi)
         radius = np.random.uniform(0, constants.DOMAIN_RADIUS + np.finfo(float).eps)
         
@@ -88,7 +88,7 @@ class Generator:
         return a, b
 
 
-    def get_border_seed(self):
+    def get_border_seed(self) -> Tuple[float, float]:
         region = random.choice(self.border)
 
         a = np.random.uniform(region[0], region[0] + constants.REGION_SIZE)
@@ -97,7 +97,7 @@ class Generator:
         return a, b
 
 
-    def calculate(self):
+    def calculate(self) -> None:
         print('Calculating Paths')
 
         for point_index in range(constants.POINTS):
@@ -114,22 +114,19 @@ class Generator:
             z = C
 
             for _ in range(constants.ITERATIONS):
-                z_conjugate = chromogeometry.conjugate(z)
+                z_adjugate = chromogeometry.adjugate(z)
                 z = 0
 
                 for parameter in self.parameters:
-                    z += parameter.coefficient * np.linalg.matrix_power(z_conjugate, parameter.exponent)
+                    z += parameter.coefficient * np.linalg.matrix_power(z_adjugate, parameter.exponent)
 
                 z += C
 
-                quadrance = np.sum(np.square(z[:, 0]))
-
-                if quadrance <= constants.ESCAPE_QUADRANCE:
+                if chromogeometry.quadrance(z) <= constants.ESCAPE_QUADRANCE:
                     path.append(z)
                 else:
                     for point in path:
-                        x = point[0, 0]
-                        y = point[0, 1]
+                        x, y = point[0]
 
                         cell_x = int(
                             (x + constants.DOMAIN_RADIUS) / constants.DOMAIN_SIZE * (constants.FRAME_SIZE - 1)
@@ -155,7 +152,7 @@ class Generator:
         print()
 
 
-    def normalize(self):
+    def normalize(self) -> None:
         self.max_value = np.max(self.counts)
 
         if (self.max_value > 0):

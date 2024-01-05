@@ -1,10 +1,12 @@
 from datetime import datetime
 import os
+from typing import List, Tuple
 
 import imageio
 import numpy as np
 
 from fm import constants
+
 
 class Visualizer:
     def __init__(self) -> None:
@@ -16,7 +18,7 @@ class Visualizer:
         os.makedirs(f'{self.directory}/borders', exist_ok=True)
 
 
-    def render_border(self, border, label):
+    def render_border(self, borders: List[Tuple[float, float]], label: str) -> None:
         frame_to_region_ratio = constants.FRAME_SIZE / constants.REGION_COUNT
 
         pixel_array = np.zeros((constants.FRAME_SIZE, constants.FRAME_SIZE), dtype=np.uint8)
@@ -28,18 +30,18 @@ class Visualizer:
                 region_x = x // frame_to_region_ratio * constants.REGION_SIZE - constants.DOMAIN_RADIUS
                 region_y = y // frame_to_region_ratio * constants.REGION_SIZE - constants.DOMAIN_RADIUS
 
-                if (region_x, region_y) in border:
+                if (region_x, region_y) in borders:
                     pixel_array[x, y] = 255
                     pixel_array[x, 2 * half_frame_size - y - 1] = 255
 
         imageio.imwrite(f'{self.directory}/borders/{label}.png', pixel_array)
 
 
-    def render_frame(self, pixel_array, label):
+    def render_frame(self, pixel_array: np.ndarray, label: str):
         imageio.imwrite(f'{self.directory}/frames/{label}.png', pixel_array)
 
 
-    def render_animation(self, pixel_arrays):
+    def render_animation(self, pixel_arrays: List[np.ndarray]):
         filename = f'{self.directory}/fractal_{self.timestamp}.gif'
 
         imageio.mimsave(filename, pixel_arrays, duration=100, loop=0)

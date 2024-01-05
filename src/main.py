@@ -11,7 +11,7 @@ from fm.parameter import Parameter
 from fm.visualizer import Visualizer
 
 
-def render_animation():
+def render_animation() -> None:
     visualizer = Visualizer()
 
     parameters1 = [
@@ -65,15 +65,15 @@ def render_animation():
         pixel_arrays.append(pixel_array)
 
         if frame_number % 10 == 0:
-            # visualizer.render_border(generator1.border, label=f'gen1_{frame_number:06d}')
-            # visualizer.render_border(generator2.border, label=f'gen2_{frame_number:06d}')
+            visualizer.render_border(generator1.border, label=f'border_g1_{frame_number:06d}')
+            visualizer.render_border(generator2.border, label=f'border_g2_{frame_number:06d}')
 
-            visualizer.render_frame(pixel_array, label=f'{(frame_number + 1):06d}')
+            visualizer.render_frame(pixel_array, label=f'frame_{(frame_number + 1):06d}')
 
     visualizer.render_animation(pixel_arrays)
 
 
-def elapsed_time_to_time_string(elapsed_seconds):
+def get_time_string(elapsed_seconds: float) -> str:
     hours, seconds = divmod(elapsed_seconds, 3600)
     minutes, seconds = divmod(seconds, 60)
 
@@ -87,7 +87,7 @@ def main():
 
     elapsed_time = time.time() - start_time
 
-    print(f'Execution Time: {elapsed_time_to_time_string(elapsed_time)}')
+    print(f'Execution Time: {get_time_string(elapsed_time)}')
     
 
 if __name__ == '__main__':
