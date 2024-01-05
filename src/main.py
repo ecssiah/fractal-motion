@@ -20,8 +20,8 @@ def render_animation():
     ]
 
     parameters2 = [
-        Parameter( 1.0, 4),
-        Parameter( 1.0, 2)
+        Parameter( 1.0, 5),
+        Parameter( 1.0, 3)
     ]
 
     angle1 = 0.0
@@ -33,8 +33,8 @@ def render_animation():
         parameters1[0].coefficient = math.cos(angle1)
         parameters1[1].coefficient = math.sin(angle1)
 
-        parameters2[0].coefficient = math.cos(angle2 + np.pi / 4)
-        parameters2[1].coefficient = math.sin(angle2 + np.pi / 4)
+        parameters2[0].coefficient = math.cos(angle2)
+        parameters2[1].coefficient = math.sin(angle2)
 
         angle1 += (2.0 * np.pi / constants.FRAME_COUNT)
         angle2 += (2.0 * np.pi / constants.FRAME_COUNT)
@@ -42,12 +42,12 @@ def render_animation():
         print(f'\nFrame {frame_number + 1}/{constants.FRAME_COUNT}')
 
         generator1 = Generator(parameters1)
-        generator1.set_weights(0.5, 0.5, 0.0)
+        generator1.set_weights(0.75, 0.25, 0.0)
         generator1.find_border()
         generator1.calculate()
 
         generator2 = Generator(parameters2)
-        generator2.set_weights(0.0, 0.5, 0.5)
+        generator2.set_weights(0.0, 0.25, 0.75)
         generator2.find_border()
         generator2.calculate()
         
@@ -64,9 +64,11 @@ def render_animation():
 
         pixel_arrays.append(pixel_array)
 
-        visualizer.render_border(generator1.border, label=f'gen1_{frame_number:06d}')
-        visualizer.render_border(generator2.border, label=f'gen2_{frame_number:06d}')
-        visualizer.render_frame(pixel_array, label=f'{frame_number:06d}')
+        if frame_number % 10 == 0:
+            # visualizer.render_border(generator1.border, label=f'gen1_{frame_number:06d}')
+            # visualizer.render_border(generator2.border, label=f'gen2_{frame_number:06d}')
+
+            visualizer.render_frame(pixel_array, label=f'{(frame_number + 1):06d}')
 
     visualizer.render_animation(pixel_arrays)
 

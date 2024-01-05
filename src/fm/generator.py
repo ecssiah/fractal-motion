@@ -19,9 +19,11 @@ class Generator:
 
 
     def set_weights(self, red, green, blue):
-        self.weights[0, 0, 0] = red
-        self.weights[1, 0, 0] = green
-        self.weights[2, 0, 0] = blue
+        sum = red + green + blue
+
+        self.weights[0, 0, 0] = red / sum
+        self.weights[1, 0, 0] = green / sum
+        self.weights[2, 0, 0] = blue / sum
 
 
     def test_escape(self, a, b):
@@ -47,7 +49,7 @@ class Generator:
 
 
     def find_border(self):
-        print('Finding Border Regions')
+        print('Calculating Borders')
 
         half_region_count = constants.REGION_COUNT // 2 + 1
 
@@ -74,36 +76,36 @@ class Generator:
         print()
 
 
-    def get_seed(self):
+    def get_random_seed(self):
+        angle = np.random.uniform(0, 2 * np.pi)
+        radius = np.random.uniform(0, constants.DOMAIN_RADIUS + np.finfo(float).eps)
+        
+        a = radius * np.cos(angle)
+        b = radius * np.sin(angle)
+
+        return a, b
+
+
+    def get_border_seed(self):
         region = random.choice(self.border)
 
         a = np.random.uniform(region[0], region[0] + constants.REGION_SIZE)
         b = np.random.uniform(region[1], region[1] + constants.REGION_SIZE)
 
         return a, b
-    
-    
-    # def get_seed(self):
-    #     angle = np.random.uniform(0, 2 * np.pi)
-    #     radius = np.random.uniform(0, constants.DOMAIN_RADIUS + np.finfo(float).eps)
-        
-    #     a = radius * np.cos(angle)
-    #     b = radius * np.sin(angle)
-
-    #     return a, b
 
 
     def calculate(self):
         print('Calculating Paths')
 
         for point_index in range(constants.POINTS):
-            if point_index % 10000 == 0:
+            if point_index % 2000 == 0:
                 percent_complete = point_index / constants.POINTS * 100
                 print(f'\r{percent_complete:.1f}% ', end='', flush=True)
 
             path = []
 
-            a, b = self.get_seed()
+            a, b = self.get_border_seed()
 
             C = a * chromogeometry.IDENTITY + b * chromogeometry.BLUE
 
