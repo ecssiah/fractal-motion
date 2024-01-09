@@ -40,7 +40,7 @@ class Generator:
 
             z += C
 
-            quadrance = np.sum(np.square(z[:, 0]))
+            quadrance = chromogeometry.quadrance(z)
 
             if quadrance > constants.ESCAPE_QUADRANCE:
                 return False
@@ -139,7 +139,9 @@ class Generator:
                         in_y_bounds = cell_y >= 0 and cell_y < constants.FRAME_SIZE
 
                         if in_x_bounds and in_y_bounds:
-                            symmetric_cell_y = int((-y + constants.DOMAIN_RADIUS) / constants.DOMAIN_SIZE * (constants.FRAME_SIZE - 1))
+                            symmetric_cell_y = int(
+                                (-y + constants.DOMAIN_RADIUS) / constants.DOMAIN_SIZE * (constants.FRAME_SIZE - 1)
+                            )
                             
                             self.counts[cell_x, cell_y] += 1
                             self.counts[cell_x, symmetric_cell_y] += 1

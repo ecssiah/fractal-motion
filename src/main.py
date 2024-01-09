@@ -11,17 +11,25 @@ from fm.parameter import Parameter
 from fm.visualizer import Visualizer
 
 
+# TODO:
+# 1. Add feature for rendering the borders into the animations
+# 2. Add 3d rotations for the Parameters
+# 3. 
+
+
 def render_animation() -> None:
     visualizer = Visualizer()
 
     parameters1 = [
-        Parameter( 1.0, 5),
-        Parameter( 1.0, 4)
+        Parameter( 1.0, 4),
+        Parameter( 1.0, 3), 
+        Parameter( 1.0, 2),
     ]
 
     parameters2 = [
-        Parameter( 1.0, 5),
-        Parameter( 1.0, 3)
+        Parameter( 1.0, 4),
+        Parameter( 1.0, 3),
+        Parameter( 1.0, 2)
     ]
 
     angle1 = 0.0
@@ -39,17 +47,17 @@ def render_animation() -> None:
         parameters2[1].coefficient = math.sin(angle2)
 
         angle1 += (2.0 * np.pi / constants.FRAME_COUNT)
-        angle2 += (2.0 * np.pi / constants.FRAME_COUNT)
+        angle2 -= (2.0 * np.pi / constants.FRAME_COUNT)
 
         generator1 = Generator(parameters1)
         generator1.find_border()
         generator1.calculate()
-        generator1.set_weights(0.75, 0.25, 0.0)
+        generator1.set_weights(1.0, 1.0, 1.0)
 
         generator2 = Generator(parameters2)
         generator2.find_border()
         generator2.calculate()
-        generator2.set_weights(0.0, 0.25, 0.75)
+        generator2.set_weights(1.0, 1.0, 1.0)
         
         histogram_pixel1 = (generator1.histogram * 255).astype(np.uint8)
         histogram_pixel2 = (generator2.histogram * 255).astype(np.uint8)
@@ -65,8 +73,8 @@ def render_animation() -> None:
         pixel_arrays.append(pixel_array)
 
         if frame_number % 10 == 0:
-            visualizer.render_border(generator1.border, label=f'border_g1_{frame_number:06d}')
-            visualizer.render_border(generator2.border, label=f'border_g2_{frame_number:06d}')
+            # visualizer.render_border(generator1.border, label=f'border_g1_{frame_number:06d}')
+            # visualizer.render_border(generator2.border, label=f'border_g2_{frame_number:06d}')
 
             visualizer.render_frame(pixel_array, label=f'frame_{(frame_number + 1):06d}')
 
