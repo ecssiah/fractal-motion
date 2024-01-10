@@ -29,7 +29,7 @@ def render_animation() -> None:
         pixel_arrays.append(pixel_array)
 
         if frame_number % 10 == 0:
-            visualizer.render_border(transformer.generators[0].border, label=f'border_g0_{frame_number:06d}')
+            # visualizer.render_border(transformer.generators[0].border, label=f'border_g0_{frame_number:06d}')
             # visualizer.render_border(transformer.generators[1].border, label=f'border_g1_{frame_number:06d}')
             # visualizer.render_border(transformer.generators[2].border, label=f'border_g2_{frame_number:06d}')
 
