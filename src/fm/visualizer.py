@@ -19,20 +19,21 @@ class Visualizer:
 
 
     def render_border(self, borders: List[Tuple[float, float]], label: str) -> None:
+        half_frame_size = constants.FRAME_SIZE // 2
         frame_to_region_ratio = constants.FRAME_SIZE / constants.REGION_COUNT
 
         pixel_array = np.zeros((constants.FRAME_SIZE, constants.FRAME_SIZE), dtype=np.uint8)
-
-        half_frame_size = constants.FRAME_SIZE // 2
 
         for y in range(half_frame_size):
             for x in range(constants.FRAME_SIZE):
                 region_x = x // frame_to_region_ratio * constants.REGION_SIZE - constants.DOMAIN_RADIUS
                 region_y = y // frame_to_region_ratio * constants.REGION_SIZE - constants.DOMAIN_RADIUS
 
+                symmetric_y = 2 * half_frame_size - (y + 1)
+
                 if (region_x, region_y) in borders:
                     pixel_array[x, y] = 255
-                    pixel_array[x, 2 * half_frame_size - y - 1] = 255
+                    pixel_array[x, symmetric_y] = 255
 
         imageio.imwrite(f'{self.directory}/borders/{label}.png', pixel_array)
 

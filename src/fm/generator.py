@@ -5,40 +5,61 @@ import numpy as np
 
 from fm import constants
 from fm import chromogeometry
-from fm.parameter import Parameter
 
 
 class Generator:
-    def __init__(self, parameters: List[Parameter]) -> None:
+    def __init__(self, weight: List[float] = [1.0, 1.0, 1.0]) -> None:
+        self.active = True
+
+        self.coefficients = np.array([1.0, 1.0, 1.0])
+        self.exponents = np.array([4, 3, 2])
+
         self.border = []
-        self.parameters = parameters
-        self.weights = np.array([1.0, 0.0, 0.0])[:, np.newaxis, np.newaxis]
+        self.weight = np.array(weight)[:, np.newaxis, np.newaxis]
 
         self.counts = np.zeros((constants.FRAME_SIZE, constants.FRAME_SIZE), dtype=np.uint8)
         self.histogram = np.zeros((constants.FRAME_SIZE, constants.FRAME_SIZE), dtype=np.float64)
 
 
-    def set_weights(self, red: float, green: float, blue: float) -> None:
+    def set_weight(self, red: float, green: float, blue: float) -> None:
         sum = red + green + blue
 
-        self.weights[0, 0, 0] = red / sum
-        self.weights[1, 0, 0] = green / sum
-        self.weights[2, 0, 0] = blue / sum
+        self.weight[0, 0, 0] = red / sum
+        self.weight[1, 0, 0] = green / sum
+        self.weight[2, 0, 0] = blue / sum
+
+
+    def get_random_seed(self) -> Tuple[float, float]:
+        angle = np.random.uniform(0, 2 * np.pi)
+        radius = np.random.uniform(0, constants.DOMAIN_RADIUS + np.finfo(float).eps)
+        
+        a = radius * np.cos(angle)
+        b = radius * np.sin(angle)
+
+        return a, b
+
+
+    def get_border_seed(self) -> Tuple[float, float]:
+        region = random.choice(self.border)
+
+        a = np.random.uniform(region[0], region[0] + constants.REGION_SIZE)
+        b = np.random.uniform(region[1], region[1] + constants.REGION_SIZE)
+
+        return a, b
 
 
     def in_set(self, a: float, b: float) -> bool:
-        C = a * chromogeometry.IDENTITY + b * chromogeometry.BLUE
-
-        z = C
+        z = C = a * chromogeometry.IDENTITY + b * chromogeometry.BLUE
 
         for _ in range(constants.ITERATIONS):
             z_adjugate = chromogeometry.adjugate(z)
-            z = 0
 
-            for parameter in self.parameters:
-                z += parameter.coefficient * np.linalg.matrix_power(z_adjugate, parameter.exponent)
-
-            z += C
+            z = (
+                self.coefficients[0] * np.linalg.matrix_power(z_adjugate, self.exponents[0]) +
+                self.coefficients[1] * np.linalg.matrix_power(z_adjugate, self.exponents[1]) +
+                self.coefficients[2] * np.linalg.matrix_power(z_adjugate, self.exponents[2]) +
+                C
+            )
 
             quadrance = chromogeometry.quadrance(z)
 
@@ -50,6 +71,8 @@ class Generator:
 
     def find_border(self) -> None:
         print('Calculating Borders')
+
+        self.border.clear()
 
         half_region_count = constants.REGION_COUNT // 2 + 1
 
@@ -78,27 +101,10 @@ class Generator:
         print()
 
 
-    def get_random_seed(self) -> Tuple[float, float]:
-        angle = np.random.uniform(0, 2 * np.pi)
-        radius = np.random.uniform(0, constants.DOMAIN_RADIUS + np.finfo(float).eps)
-        
-        a = radius * np.cos(angle)
-        b = radius * np.sin(angle)
-
-        return a, b
-
-
-    def get_border_seed(self) -> Tuple[float, float]:
-        region = random.choice(self.border)
-
-        a = np.random.uniform(region[0], region[0] + constants.REGION_SIZE)
-        b = np.random.uniform(region[1], region[1] + constants.REGION_SIZE)
-
-        return a, b
-
-
     def calculate(self) -> None:
         print('Calculating Paths')
+
+        self.counts.fill(0)
 
         for point_index in range(constants.POINTS):
             if point_index % 2000 == 0:
@@ -109,18 +115,17 @@ class Generator:
 
             a, b = self.get_border_seed()
 
-            C = a * chromogeometry.IDENTITY + b * chromogeometry.BLUE
-
-            z = C
+            z = C = a * chromogeometry.IDENTITY + b * chromogeometry.BLUE
 
             for _ in range(constants.ITERATIONS):
                 z_adjugate = chromogeometry.adjugate(z)
-                z = 0
 
-                for parameter in self.parameters:
-                    z += parameter.coefficient * np.linalg.matrix_power(z_adjugate, parameter.exponent)
-
-                z += C
+                z = (
+                    self.coefficients[0] * np.linalg.matrix_power(z_adjugate, self.exponents[0]) +
+                    self.coefficients[1] * np.linalg.matrix_power(z_adjugate, self.exponents[1]) +
+                    self.coefficients[2] * np.linalg.matrix_power(z_adjugate, self.exponents[2]) +
+                    C
+                )
 
                 if chromogeometry.quadrance(z) <= constants.ESCAPE_QUADRANCE:
                     path.append(z)
