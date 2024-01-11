@@ -8,9 +8,8 @@ from fm.visualizer import Visualizer
 
 # TODO:
 # 1. Add feature for rendering the borders into the animations
-# 2. Add 3d rotations for the Parameters
-# 3. Replace 2d rotations with complex multiplication to include dilations
-# 4. 
+# 2. Replace 2d rotations with complex multiplication to include dilations
+
 
 pixel_arrays = []
 

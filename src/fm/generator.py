@@ -11,8 +11,8 @@ class Generator:
     def __init__(self, weight: List[float] = [1.0, 1.0, 1.0]) -> None:
         self.active = True
 
-        self.coefficients = np.array([1.0, 1.0, 1.0])
-        self.exponents = np.array([4, 3, 2])
+        self.coefficients = np.array([1.0, -1.0, 1.0])
+        self.exponents = np.array([4, 3, 2]).astype(int)
 
         self.border = []
         self.weight = np.array(weight)[:, np.newaxis, np.newaxis]
@@ -52,12 +52,12 @@ class Generator:
         z = C = a * chromogeometry.IDENTITY + b * chromogeometry.BLUE
 
         for _ in range(constants.ITERATIONS):
-            z_adjugate = chromogeometry.adjugate(z)
+            z_conjugate = chromogeometry.conjugate(z)
 
             z = (
-                self.coefficients[0] * np.linalg.matrix_power(z_adjugate, self.exponents[0]) +
-                self.coefficients[1] * np.linalg.matrix_power(z_adjugate, self.exponents[1]) +
-                self.coefficients[2] * np.linalg.matrix_power(z_adjugate, self.exponents[2]) +
+                self.coefficients[0] * np.linalg.matrix_power(z_conjugate, self.exponents[0]) +
+                self.coefficients[1] * np.linalg.matrix_power(z_conjugate, self.exponents[1]) +
+                self.coefficients[2] * np.linalg.matrix_power(z_conjugate, self.exponents[2]) +
                 C
             )
 
@@ -118,12 +118,12 @@ class Generator:
             z = C = a * chromogeometry.IDENTITY + b * chromogeometry.BLUE
 
             for _ in range(constants.ITERATIONS):
-                z_adjugate = chromogeometry.adjugate(z)
+                z_conjugate = chromogeometry.conjugate(z)
 
                 z = (
-                    self.coefficients[0] * np.linalg.matrix_power(z_adjugate, self.exponents[0]) +
-                    self.coefficients[1] * np.linalg.matrix_power(z_adjugate, self.exponents[1]) +
-                    self.coefficients[2] * np.linalg.matrix_power(z_adjugate, self.exponents[2]) +
+                    self.coefficients[0] * np.linalg.matrix_power(z_conjugate, self.exponents[0]) +
+                    self.coefficients[1] * np.linalg.matrix_power(z_conjugate, self.exponents[1]) +
+                    self.coefficients[2] * np.linalg.matrix_power(z_conjugate, self.exponents[2]) +
                     C
                 )
 
@@ -133,23 +133,27 @@ class Generator:
                     for point in path:
                         x, y = point[0]
 
-                        cell_x = int(
-                            (x + constants.DOMAIN_RADIUS) / constants.DOMAIN_SIZE * (constants.FRAME_SIZE - 1)
-                        )
-                        cell_y = int(
-                            (y + constants.DOMAIN_RADIUS) / constants.DOMAIN_SIZE * (constants.FRAME_SIZE - 1)
-                        )
+                        centered_x = x + constants.DOMAIN_RADIUS
+                        centered_y = y + constants.DOMAIN_RADIUS
+
+                        normalized_x = centered_x / constants.DOMAIN_SIZE
+                        normalized_y = centered_y / constants.DOMAIN_SIZE
+
+                        cell_x = int(normalized_x * (constants.FRAME_SIZE - 1))
+                        cell_y = int(normalized_y * (constants.FRAME_SIZE - 1))
 
                         in_x_bounds = cell_x >= 0 and cell_x < constants.FRAME_SIZE
                         in_y_bounds = cell_y >= 0 and cell_y < constants.FRAME_SIZE
 
                         if in_x_bounds and in_y_bounds:
-                            symmetric_cell_y = int(
-                                (-y + constants.DOMAIN_RADIUS) / constants.DOMAIN_SIZE * (constants.FRAME_SIZE - 1)
-                            )
+                            centered_symmetric_y = -y + constants.DOMAIN_RADIUS
+
+                            normalized_symmetric_y = centered_symmetric_y / constants.DOMAIN_SIZE
+
+                            cell_symmetric_y = int(normalized_symmetric_y * (constants.FRAME_SIZE - 1))
                             
                             self.counts[cell_x, cell_y] += 1
-                            self.counts[cell_x, symmetric_cell_y] += 1
+                            self.counts[cell_x, cell_symmetric_y] += 1
 
                     break
 

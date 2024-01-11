@@ -1,6 +1,5 @@
-import math
-
 import numpy as np
+from scipy.spatial.transform import Rotation
 
 from fm import constants
 from fm.generator import Generator
@@ -8,14 +7,20 @@ from fm.generator import Generator
 
 class Transformer:
     def __init__(self) -> None:
-        self.axis = np.array([0, 1, 0])
-        self.rotation = self.calculate_rotation_matrix(2.0 * np.pi / constants.FRAME_COUNT)
+        self.axis = np.array([1.0, 0.0, -1.0])
+        self.axis /= np.linalg.norm(self.axis)
+
+        self.angle = 2.0 * np.pi / constants.FRAME_COUNT
+
+        self.rotation = Rotation.from_rotvec(self.angle * self.axis).as_matrix()
         
         self.generators = [Generator() for _ in range(3)]
 
         self.generators[0].active = True
         self.generators[1].active = False
         self.generators[2].active = False
+
+        self.generators[0].set_weight(0.0, 1.0, 1.0)
 
 
     def step(self) -> None:
@@ -51,36 +56,20 @@ class Transformer:
             self.generators[2].coefficients = self.rotation @ self.generators[2].coefficients
 
 
-    def calculate_rotation_matrix(self, angle: float) -> np.ndarray:
-        c = np.cos(angle)
-        s = np.sin(angle)
-        t = 1 - c
-
-        x, y, z = self.axis
-
-        rotation_matrix = np.array([
-            [t * x * x + c,     t * x * y - s * z, t * x * z + s * y],
-            [t * x * y + s * z, t * y * y + c,     t * y * z - s * x],
-            [t * x * z - s * y, t * y * z + s * x, t * z * z + c    ]
-        ])
-
-        return rotation_matrix
-
-
     def get_pixel_array(self) -> np.ndarray:
         pixel_array = np.zeros((3, constants.FRAME_SIZE, constants.FRAME_SIZE), dtype=np.float64)
 
         if self.generators[0].active:
-            histogram_pixel0 = (self.generators[0].histogram * 255).astype(np.uint8)
-            pixel_array += self.generators[0].weight * histogram_pixel0
+            pixel_histogram = (self.generators[0].histogram * 255).astype(np.uint8)
+            pixel_array += self.generators[0].weight * pixel_histogram
         
         if self.generators[1].active:
-            histogram_pixel1 = (self.generators[1].histogram * 255).astype(np.uint8)
-            pixel_array += self.generators[1].weight * histogram_pixel1
+            pixel_histogram = (self.generators[1].histogram * 255).astype(np.uint8)
+            pixel_array += self.generators[1].weight * pixel_histogram
 
         if self.generators[2].active:
-            histogram_pixel2 = (self.generators[2].histogram * 255).astype(np.uint8)
-            pixel_array += self.generators[2].weight * histogram_pixel2
+            pixel_histogram = (self.generators[2].histogram * 255).astype(np.uint8)
+            pixel_array += self.generators[2].weight * pixel_histogram
 
         pixel_array = pixel_array.astype(np.uint8)
         pixel_array = pixel_array.transpose(1, 2, 0)
