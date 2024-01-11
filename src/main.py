@@ -18,8 +18,8 @@ visualizer = Visualizer()
 
 
 def render_animation() -> None:
-    for frame_number in range(constants.FRAME_COUNT):
-        print(f'\nFrame {frame_number + 1}/{constants.FRAME_COUNT}')
+    for index in range(constants.FRAME_COUNT):
+        print_frame(index)
 
         transformer.step()
 
@@ -27,14 +27,20 @@ def render_animation() -> None:
     
         pixel_arrays.append(pixel_array)
 
-        if frame_number % 10 == 0:
-            # visualizer.render_border(transformer.generators[0].border, label=f'border_g0_{frame_number:06d}')
-            # visualizer.render_border(transformer.generators[1].border, label=f'border_g1_{frame_number:06d}')
-            # visualizer.render_border(transformer.generators[2].border, label=f'border_g2_{frame_number:06d}')
+        if index % 10 == 0:
+            if constants.DEBUG_FRAME:
+                visualizer.render_frame(pixel_array, label=f'frame_{(index):06d}')
 
-            visualizer.render_frame(pixel_array, label=f'frame_{(frame_number):06d}')
+            if constants.DEBUG_BORDER:
+                for index, generator in enumerate(transformer.generators):
+                    visualizer.render_border(generator.border, label=f'border_g{index}_{index:06d}')
 
     visualizer.render_animation(pixel_arrays)
+
+
+def print_frame(index: int) -> None:
+    print(f'\nFrame {index + 1}/{constants.FRAME_COUNT}')
+    print()
 
 
 def get_time_string(elapsed_seconds: float) -> str:

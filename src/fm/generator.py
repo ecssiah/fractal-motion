@@ -11,7 +11,7 @@ class Generator:
     def __init__(self, weight: List[float] = [1.0, 1.0, 1.0]) -> None:
         self.active = True
 
-        self.coefficients = np.array([1.0, -1.0, 1.0])
+        self.coefficients = np.array([1.0, 1.0, 1.0])
         self.exponents = np.array([4, 3, 2]).astype(int)
 
         self.border = []
@@ -70,7 +70,7 @@ class Generator:
 
 
     def find_border(self) -> None:
-        print('Calculating Borders')
+        print('Borders')
 
         self.border.clear()
 
@@ -102,7 +102,7 @@ class Generator:
 
 
     def calculate(self) -> None:
-        print('Calculating Paths')
+        print('Paths')
 
         self.counts.fill(0)
 
@@ -161,6 +161,7 @@ class Generator:
 
         print('\r100.0% ', end='', flush=True)
         print()
+        print()
 
 
     def normalize(self) -> None:
@@ -170,3 +171,25 @@ class Generator:
             self.histogram = np.log1p(self.counts) / np.log1p(self.max_value)
         else:
             self.histogram.fill(0.0)
+
+
+    def print_terms(self) -> None:
+        print(
+            f'ƒ(z) = '
+            f'{self.coefficients[0]:.2f}z{self.to_superscript(self.exponents[0])}'
+            f' {"+" if self.coefficients[1] > 0 else "-"} '
+            f'{abs(self.coefficients[1]):.2f}z{self.to_superscript(self.exponents[1])}'
+            f' {"+" if self.coefficients[2] > 0 else "-"} '
+            f'{abs(self.coefficients[2]):.2f}z{self.to_superscript(self.exponents[2])}'
+            f' + C'
+        )
+
+
+    def to_superscript(self, number):
+        superscript_map = str.maketrans(
+            '0123456789', 
+            '⁰¹²³⁴⁵⁶⁷⁸⁹',
+        )
+
+        return str(number).translate(superscript_map)
+    

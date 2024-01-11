@@ -7,53 +7,48 @@ from fm.generator import Generator
 
 class Transformer:
     def __init__(self) -> None:
-        self.axis = np.array([1.0, 0.0, -1.0])
-        self.axis /= np.linalg.norm(self.axis)
-
-        self.angle = 2.0 * np.pi / constants.FRAME_COUNT
-
-        self.rotation = Rotation.from_rotvec(self.angle * self.axis).as_matrix()
-        
         self.generators = [Generator() for _ in range(3)]
 
         self.generators[0].active = True
-        self.generators[1].active = False
-        self.generators[2].active = False
+        self.generators[1].active = True
+        self.generators[2].active = True
 
-        self.generators[0].set_weight(0.0, 1.0, 1.0)
+        self.generators[0].coefficients[:] = [0.0, 0.0, 1.0]
+        self.generators[1].coefficients[:] = [0.0, 0.0, 1.0]
+        self.generators[2].coefficients[:] = [0.0, 0.0, 1.0]
+
+        self.generators[0].set_weight(1.0, 0.0, 0.0)
+        self.generators[1].set_weight(0.0, 1.0, 0.0)
+        self.generators[2].set_weight(0.0, 0.0, 1.0)
+
+        self.angle = 2.0 * np.pi / constants.FRAME_COUNT
+
+        self.axes = np.array([
+            [ -1.0,  0.0,  0.0 ],
+            [ -1.0,  1.0,  0.0 ],
+            [  1.0,  1.0,  0.0 ],
+        ])
+
+        self.axes /= np.linalg.norm(self.axes, axis=1, keepdims=True)
+
+        self.rotations = [Rotation.from_rotvec(self.angle * axis).as_matrix() for axis in self.axes]
 
 
     def step(self) -> None:
-        if self.generators[0].active:
-            print(self.generators[0].coefficients)
+        for generator in self.generators:
+            if generator.active:
+                generator.print_terms()
 
-            self.generators[0].find_border()
-            self.generators[0].calculate()
-
-        if self.generators[1].active:
-            print(self.generators[1].coefficients)
-
-            self.generators[1].find_border()
-            self.generators[1].calculate()
-
-        if self.generators[2].active:
-            print(self.generators[2].coefficients)
-
-            self.generators[2].find_border()
-            self.generators[2].calculate()
+                generator.find_border()
+                generator.calculate()
 
         self.rotate()
 
 
     def rotate(self) -> None:
-        if self.generators[0].active:
-            self.generators[0].coefficients = self.rotation @ self.generators[0].coefficients
-
-        if self.generators[1].active:
-            self.generators[1].coefficients = self.rotation @ self.generators[1].coefficients
-
-        if self.generators[2].active:
-            self.generators[2].coefficients = self.rotation @ self.generators[2].coefficients
+        for index, generator in enumerate(self.generators):
+            if generator.active:
+                generator.coefficients = self.rotations[index] @ generator.coefficients
 
 
     def get_pixel_array(self) -> np.ndarray:
