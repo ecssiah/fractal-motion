@@ -13,29 +13,29 @@ class Transformer:
         self.generators[1].active = True
         self.generators[2].active = True
 
-        self.generators[0].coefficients[:] = [1.0, 0.0, 0.0]
-        self.generators[1].coefficients[:] = [0.0, 1.0, 0.0]
-        self.generators[2].coefficients[:] = [0.0, 0.0, 1.0]
+        self.generators[0].set_coefficients(1.0, 0.0, 0.0)
+        self.generators[1].set_coefficients(0.0, 1.0, 0.0)
+        self.generators[2].set_coefficients(0.0, 0.0, 1.0)
 
-        self.generators[0].exponents[:] = [5, 4, 3]
-        self.generators[1].exponents[:] = [5, 4, 3]
-        self.generators[2].exponents[:] = [5, 4, 3]
+        self.generators[0].set_exponents(4, 3, 2)
+        self.generators[1].set_exponents(4, 3, 2)
+        self.generators[2].set_exponents(4, 3, 2)
+
+        self.angle = 2.0 * np.pi / constants.FRAME_COUNT
+
+        self.axes = np.array([
+            [ 0.0, 1.0, 0.0 ],
+            [ 0.0, 0.0, 1.0 ],
+            [ 1.0, 0.0, 0.0 ],
+        ])
+
+        self.axes /= np.linalg.norm(self.axes, axis=1, keepdims=True)
 
         self.weights = np.array([
             [ 0.0, 0.0, 1.0 ],
             [ 0.0, 1.0, 0.0 ],
             [ 1.0, 0.0, 0.0 ],
         ])
-
-        self.angle = 2.0 * np.pi / constants.FRAME_COUNT
-
-        self.axes = np.array([
-            [  1.0,  1.0,  1.0 ],
-            [  1.0,  1.0,  1.0 ],
-            [  1.0,  1.0,  1.0 ],
-        ])
-
-        self.axes /= np.linalg.norm(self.axes, axis=1, keepdims=True)
 
         self.rotations = [ 
             Rotation.from_rotvec(self.angle * axis).as_matrix() 
