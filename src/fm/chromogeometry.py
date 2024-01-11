@@ -21,6 +21,14 @@ GREEN = np.array([
 ])
 
 
+def real(z: np.ndarray) -> float:
+    return z[0, 0]
+
+
+def imag(z: np.ndarray) -> float:
+    return z[1, 0]
+
+
 def quadrance(z: np.ndarray) -> float:
     return z[0, 0] * z[1, 1] - z[0, 1] * z[1, 0]
 

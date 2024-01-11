@@ -8,25 +8,23 @@ from fm import chromogeometry
 
 
 class Generator:
-    def __init__(self, weight: List[float] = [1.0, 1.0, 1.0]) -> None:
+    def __init__(self) -> None:
         self.active = True
 
         self.coefficients = np.array([1.0, 1.0, 1.0])
         self.exponents = np.array([4, 3, 2]).astype(int)
 
         self.border = []
-        self.weight = np.array(weight)[:, np.newaxis, np.newaxis]
+
+        self.corners = [
+            (0,                     0),
+            (constants.REGION_SIZE, 0),
+            (0,                     constants.REGION_SIZE),
+            (constants.REGION_SIZE, constants.REGION_SIZE)
+        ]
 
         self.counts = np.zeros((constants.FRAME_SIZE, constants.FRAME_SIZE), dtype=np.uint8)
         self.histogram = np.zeros((constants.FRAME_SIZE, constants.FRAME_SIZE), dtype=np.float64)
-
-
-    def set_weight(self, red: float, green: float, blue: float) -> None:
-        sum = red + green + blue
-
-        self.weight[0, 0, 0] = red / sum
-        self.weight[1, 0, 0] = green / sum
-        self.weight[2, 0, 0] = blue / sum
 
 
     def get_random_seed(self) -> Tuple[float, float]:
@@ -67,6 +65,15 @@ class Generator:
                 return False
             
         return True
+    
+
+    def is_border(self, a: float, b: float) -> bool:
+        num_of_escapes = sum(
+            0 if self.in_set(a + x, b + y) else 1 
+            for x, y in self.corners
+        )
+
+        return num_of_escapes == 2 or num_of_escapes == 3
 
 
     def find_border(self) -> None:
@@ -75,26 +82,15 @@ class Generator:
         half_region_count = constants.REGION_COUNT // 2 + 1
 
         for j in range(half_region_count):
-            self.print_percentage(j, half_region_count, 'Borders')
-
             for i in range(constants.REGION_COUNT):
                 a = constants.REGION_SIZE * i - constants.DOMAIN_RADIUS
                 b = constants.REGION_SIZE * j - constants.DOMAIN_RADIUS
 
-                corners = [
-                    (0,                     0),
-                    (constants.REGION_SIZE, 0),
-                    (0,                     constants.REGION_SIZE),
-                    (constants.REGION_SIZE, constants.REGION_SIZE)
-                ]
-
-                num_of_escapes = sum(0 if self.in_set(a + x, b + y) else 1 for x, y in corners)
-
-                if num_of_escapes == 2 or num_of_escapes == 3:
+                if self.is_border(a, b):
                     self.border.append((a,  b))
                     self.border.append((a, -b))
 
-        self.print_percentage(half_region_count, half_region_count, 'Borders')
+            self.print_percentage(j + 1, half_region_count, 'Borders')
 
         print()
 
@@ -103,9 +99,6 @@ class Generator:
         self.counts.fill(0)
 
         for index in range(constants.POINTS):
-            if index % 2000 == 0:
-                self.print_percentage(index, constants.POINTS, 'Paths')
-
             path = []
 
             a, b = self.get_border_seed()
@@ -152,32 +145,20 @@ class Generator:
 
                     break
 
-        self.normalize_log()
+            if index % 2000 == 1999 or index == constants.POINTS - 1:
+                self.print_percentage(index, constants.POINTS, 'Paths')
 
-        self.print_percentage(constants.POINTS, constants.POINTS, 'Paths')
+        self.normalize()
 
         print()
         print()
 
 
-    def normalize_log(self) -> None:
+    def normalize(self) -> None:
         self.max_value = np.max(self.counts)
 
         if (self.max_value > 0):
             self.histogram = np.log1p(self.counts) / np.log1p(self.max_value)
-        else:
-            self.histogram.fill(0.0)
-
-
-    def normalize_z_score(self):
-        mean_value = np.mean(self.counts)
-        std_dev = np.std(self.counts)
-        
-        if std_dev > 0:
-            z_score_normalized = (self.counts - mean_value) / std_dev
-            min_value = np.min(z_score_normalized)
-            max_value = np.max(z_score_normalized)
-            self.histogram = (z_score_normalized - min_value) / (max_value - min_value)
         else:
             self.histogram.fill(0.0)
 
