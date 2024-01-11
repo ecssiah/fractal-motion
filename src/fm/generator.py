@@ -70,15 +70,12 @@ class Generator:
 
 
     def find_border(self) -> None:
-        print('Borders')
-
         self.border.clear()
 
         half_region_count = constants.REGION_COUNT // 2 + 1
 
         for j in range(half_region_count):
-            percent_complete = j / half_region_count * 100
-            print(f'\r{percent_complete:.1f}% ', end='', flush=True)
+            self.print_percentage(j, half_region_count, 'Borders')
 
             for i in range(constants.REGION_COUNT):
                 a = constants.REGION_SIZE * i - constants.DOMAIN_RADIUS
@@ -97,19 +94,17 @@ class Generator:
                     self.border.append((a,  b))
                     self.border.append((a, -b))
 
-        print('\r100.0% ', end='', flush=True)
+        self.print_percentage(half_region_count, half_region_count, 'Borders')
+
         print()
 
 
     def calculate(self) -> None:
-        print('Paths')
-
         self.counts.fill(0)
 
-        for point_index in range(constants.POINTS):
-            if point_index % 2000 == 0:
-                percent_complete = point_index / constants.POINTS * 100
-                print(f'\r{percent_complete:.1f}% ', end='', flush=True)
+        for index in range(constants.POINTS):
+            if index % 2000 == 0:
+                self.print_percentage(index, constants.POINTS, 'Paths')
 
             path = []
 
@@ -157,14 +152,15 @@ class Generator:
 
                     break
 
-        self.normalize()
+        self.normalize_log()
 
-        print('\r100.0% ', end='', flush=True)
+        self.print_percentage(constants.POINTS, constants.POINTS, 'Paths')
+
         print()
         print()
 
 
-    def normalize(self) -> None:
+    def normalize_log(self) -> None:
         self.max_value = np.max(self.counts)
 
         if (self.max_value > 0):
@@ -173,13 +169,32 @@ class Generator:
             self.histogram.fill(0.0)
 
 
+    def normalize_z_score(self):
+        mean_value = np.mean(self.counts)
+        std_dev = np.std(self.counts)
+        
+        if std_dev > 0:
+            z_score_normalized = (self.counts - mean_value) / std_dev
+            min_value = np.min(z_score_normalized)
+            max_value = np.max(z_score_normalized)
+            self.histogram = (z_score_normalized - min_value) / (max_value - min_value)
+        else:
+            self.histogram.fill(0.0)
+
+
+    def print_percentage(self, current: float, total: float, label: str) -> None:
+        percent = current / total * 100
+
+        print(f'\r{label: <10}{percent:.1f}% ', end='', flush=True)
+
+
     def print_terms(self) -> None:
         print(
-            f'ƒ(z) = '
+            f'f(z) = '
             f'{self.coefficients[0]:.2f}z{self.to_superscript(self.exponents[0])}'
-            f' {"+" if self.coefficients[1] > 0 else "-"} '
+            f' {"+" if self.coefficients[1] >= 0 else "-"} '
             f'{abs(self.coefficients[1]):.2f}z{self.to_superscript(self.exponents[1])}'
-            f' {"+" if self.coefficients[2] > 0 else "-"} '
+            f' {"+" if self.coefficients[2] >= 0 else "-"} '
             f'{abs(self.coefficients[2]):.2f}z{self.to_superscript(self.exponents[2])}'
             f' + C'
         )

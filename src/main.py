@@ -39,7 +39,9 @@ def render_animation() -> None:
 
 
 def print_frame(index: int) -> None:
-    print(f'\nFrame {index + 1}/{constants.FRAME_COUNT}')
+    print(f'<======================================>')
+    print()
+    print(f'FRAME {index + 1}/{constants.FRAME_COUNT}')
     print()
 
 
