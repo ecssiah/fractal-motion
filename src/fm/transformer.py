@@ -17,7 +17,7 @@ class Transformer:
     def __init__(self) -> None:
         self.generators = [ Generator() for _ in range(3) ]
 
-        self.mode = Mode.DOUBLE
+        self.mode = Mode.TRIPLE
 
         self.generators[0].active = self.mode.value >= Mode.SINGLE.value
         self.generators[1].active = self.mode.value >= Mode.DOUBLE.value

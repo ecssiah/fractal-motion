@@ -48,13 +48,16 @@ def render_debug(frame_index: int, pixel_array: np.ndarray) -> None:
     debug_outputs = 1 if constants.DEBUG_FRAME else 0
     debug_outputs += transformer.mode.value
 
+    frame_count_digits = len(str(constants.FRAME_COUNT))
+    frame_index_output = f'{frame_index:0{frame_count_digits}d}'
+
     print_percentage(output, debug_outputs, 'Debug')
 
     if frame_index % constants.DEBUG_INTERVAL == 0:
         if constants.DEBUG_FRAME:
             output += 1
             
-            visualizer.render_frame(pixel_array, label=f'frame_{(frame_index):06d}')
+            visualizer.render_frame(pixel_array, label=f'frame_{frame_index_output}')
             
             print_percentage(output, debug_outputs, 'Debug')
 
@@ -63,7 +66,7 @@ def render_debug(frame_index: int, pixel_array: np.ndarray) -> None:
                 if generator.active:
                     output += 1
 
-                    visualizer.render_border(generator.border_cells, label=f'border_g{index}_{index:06d}')
+                    visualizer.render_border(generator.border_cells, label=f'border{index}_{frame_index_output}')
 
                     print_percentage(output, debug_outputs, 'Debug')
     
@@ -74,7 +77,7 @@ def render_debug(frame_index: int, pixel_array: np.ndarray) -> None:
 
 def print_frame(index: int) -> None:
     frame_count_digits = len(str(constants.FRAME_COUNT))
-    frame_text = f' FRAME {(index + 1):0{frame_count_digits}d}/{constants.FRAME_COUNT} '
+    frame_text = f'   FRAME {(index):0{frame_count_digits}d}/{constants.FRAME_COUNT - 1}   '
 
     print(f'§{"=" * len(frame_text)}§')
     print(f'§{frame_text}§')
