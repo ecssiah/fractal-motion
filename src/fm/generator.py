@@ -5,7 +5,7 @@ import numpy as np
 
 from fm import constants
 from fm import chromogeometry
-from fm.utils import print_percentage
+from fm.utils import print_percentage, to_superscript
 
 
 class Generator:
@@ -20,17 +20,23 @@ class Generator:
 
         self.border_cells = []
 
-        self.cell_corners = np.array([
-            [ 0,                   0 ],
-            [ constants.CELL_SIZE, 0 ],
-            [ 0,                   constants.CELL_SIZE],
-            [ constants.CELL_SIZE, constants.CELL_SIZE],
+        self.corner_positions = np.array([
+            [ -constants.CELL_RADIUS, -constants.CELL_RADIUS ],
+            [ -constants.CELL_RADIUS,  constants.CELL_RADIUS ],
+            [  constants.CELL_RADIUS, -constants.CELL_RADIUS ],
+            [  constants.CELL_RADIUS,  constants.CELL_RADIUS ],
         ])
 
 
     def find_border(self) -> None:
         self.border_cells.clear()
 
+        cell_corners = self.test_corners()
+
+        self.locate_border(cell_corners)
+
+
+    def test_corners(self) -> np.ndarray:
         cell_corners = np.zeros(
             (constants.BORDER_MAP_SIZE + 1, (constants.BORDER_MAP_SIZE + 1) // 2 + 1), 
             dtype=np.uint8
@@ -40,10 +46,10 @@ class Generator:
             print_percentage(i, constants.BORDER_MAP_SIZE + 1, 'Corners')
 
             for j in range(cell_corners.shape[1]):
-                C = chromogeometry.matrix(
-                    constants.CELL_SIZE * i - constants.DOMAIN_RADIUS,
-                    constants.CELL_SIZE * j - constants.DOMAIN_RADIUS,
-                )
+                a = constants.CELL_SIZE * i - constants.DOMAIN_RADIUS
+                b = constants.CELL_SIZE * j - constants.DOMAIN_RADIUS
+
+                C = chromogeometry.matrix_blue(a, b)
 
                 if self.in_set(C):
                     cell_corners[i, j] = 1
@@ -51,16 +57,29 @@ class Generator:
         print_percentage(100, 100, 'Corners')
         print()
 
-        cell_index = 0
+        return cell_corners
+    
 
-        for center_x in np.arange(-constants.DOMAIN_RADIUS, constants.DOMAIN_RADIUS, constants.CELL_SIZE):
-            cell_index += 1
+    def locate_border(self, cell_corners: np.ndarray) -> None:
+        x_range = np.arange(
+            -constants.DOMAIN_RADIUS + constants.CELL_RADIUS, 
+             constants.DOMAIN_RADIUS - constants.CELL_RADIUS, 
+            constants.CELL_SIZE
+        )
+
+        y_range = np.arange(
+            -constants.DOMAIN_RADIUS + constants.CELL_RADIUS, 
+             0                       - constants.CELL_RADIUS,
+            constants.CELL_SIZE
+        )
+
+        for cell_index, center_x in enumerate(x_range):
             print_percentage(cell_index, constants.BORDER_MAP_SIZE + 1, 'Cells')
 
-            for center_y in np.arange(-constants.DOMAIN_RADIUS, 0, constants.CELL_SIZE):
+            for center_y in y_range:
                 number_of_escapes = 0
 
-                for offset_x, offset_y in self.cell_corners:
+                for offset_x, offset_y in self.corner_positions:
                     x = center_x + offset_x
                     y = center_y + offset_y
 
@@ -70,11 +89,11 @@ class Generator:
                     number_of_escapes += cell_corners[i, j]
 
                 if number_of_escapes > 0 and number_of_escapes < 4:
-                    self.border_cells.append((x, y))
+                    self.border_cells.append((center_x, center_y))
         
         print_percentage(100, 100, 'Cells')
         print()
-
+    
 
     def calculate(self) -> None:
         self.counts.fill(0)
@@ -164,16 +183,16 @@ class Generator:
         a = radius * np.cos(angle)
         b = radius * np.sin(angle)
 
-        return a * chromogeometry.IDENTITY + b * chromogeometry.BLUE
+        return chromogeometry.matrix_blue(a, b)
 
 
     def get_border_seed(self) -> np.ndarray:
         x, y = random.choice(self.border_cells)
 
-        a = np.random.uniform(x, x + constants.CELL_SIZE)
-        b = np.random.uniform(y, y + constants.CELL_SIZE)
+        a = np.random.uniform(x - constants.CELL_RADIUS, x + constants.CELL_RADIUS)
+        b = np.random.uniform(y - constants.CELL_RADIUS, y + constants.CELL_RADIUS)
 
-        return a * chromogeometry.IDENTITY + b * chromogeometry.BLUE
+        return chromogeometry.matrix_blue(a, b)
 
 
     def in_set(self, C: np.ndarray) -> bool:
@@ -188,33 +207,13 @@ class Generator:
         return True
 
 
-    def is_border(self, a: float, b: float) -> bool:
-        num_of_escapes = sum(
-            0 if self.in_set(a + x, b + y) else 1 
-            for x, y in self.cell_corners
-        )
-
-        return num_of_escapes == 2 or num_of_escapes == 3
-
-
     def print_terms(self) -> None:
         print(
             f'f(z) = '
-            f'{self.coefficients[0]:.2f}z{self.to_superscript(self.exponents[0])}'
+            f'{self.coefficients[0]:.2f}z{to_superscript(self.exponents[0])}'
             f' {"+" if self.coefficients[1] >= 0 else "-"} '
-            f'{abs(self.coefficients[1]):.2f}z{self.to_superscript(self.exponents[1])}'
+            f'{abs(self.coefficients[1]):.2f}z{to_superscript(self.exponents[1])}'
             f' {"+" if self.coefficients[2] >= 0 else "-"} '
-            f'{abs(self.coefficients[2]):.2f}z{self.to_superscript(self.exponents[2])}'
+            f'{abs(self.coefficients[2]):.2f}z{to_superscript(self.exponents[2])}'
             f' + C'
-            f'\n'
         )
-
-
-    def to_superscript(self, number):
-        superscript_map = str.maketrans(
-            '0123456789', 
-            '⁰¹²³⁴⁵⁶⁷⁸⁹',
-        )
-
-        return str(number).translate(superscript_map)
-    

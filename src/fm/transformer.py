@@ -23,7 +23,7 @@ class Transformer:
         self.generators[1].active = self.mode.value >= Mode.DOUBLE.value
         self.generators[2].active = self.mode.value >= Mode.TRIPLE.value
 
-        self.generators[0].set_coefficients( 0.0,  1.0,  0.0)
+        self.generators[0].set_coefficients( 0.0,  1.0,  1.0)
         self.generators[1].set_coefficients( 0.0,  0.0,  1.0)
         self.generators[2].set_coefficients( 1.0,  0.0,  0.0)
 
