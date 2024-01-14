@@ -18,22 +18,17 @@ class Visualizer:
         os.makedirs(f'{self.directory}/borders', exist_ok=True)
 
 
-    def render_border(self, borders: List[Tuple[float, float]], label: str) -> None:
-        half_frame_size = constants.FRAME_SIZE // 2
-        frame_to_region_ratio = constants.FRAME_SIZE / constants.REGION_COUNT
+    def render_border(self, border_cells: List[Tuple[float, float]], label: str) -> None:
+        pixel_array = np.zeros((constants.BORDER_MAP_SIZE, constants.BORDER_MAP_SIZE), dtype=np.uint8)
 
-        pixel_array = np.zeros((constants.FRAME_SIZE, constants.FRAME_SIZE), dtype=np.uint8)
+        for cell_x, cell_y in border_cells:
+            x = int((cell_x + constants.DOMAIN_RADIUS) / constants.CELL_SIZE)
+            y = int((cell_y + constants.DOMAIN_RADIUS) / constants.CELL_SIZE)
 
-        for y in range(half_frame_size):
-            for x in range(constants.FRAME_SIZE):
-                region_x = x // frame_to_region_ratio * constants.REGION_SIZE - constants.DOMAIN_RADIUS
-                region_y = y // frame_to_region_ratio * constants.REGION_SIZE - constants.DOMAIN_RADIUS
+            symmetric_y = 2 * constants.BORDER_MAP_RADIUS - (y + 1)
 
-                symmetric_y = 2 * half_frame_size - (y + 1)
-
-                if (region_x, region_y) in borders:
-                    pixel_array[x, y] = 255
-                    pixel_array[x, symmetric_y] = 255
+            pixel_array[x, y] = 255
+            pixel_array[x, symmetric_y] = 255
 
         imageio.imwrite(f'{self.directory}/borders/{label}.png', pixel_array)
 

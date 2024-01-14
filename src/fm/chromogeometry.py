@@ -21,6 +21,13 @@ GREEN = np.array([
 ])
 
 
+def matrix(a: float, b: float) -> np.ndarray:
+    return np.array([
+        [ a, -b ],
+        [ b,  a ],
+    ])
+
+
 def real(z: np.ndarray) -> float:
     return z[0, 0]
 

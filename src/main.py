@@ -6,14 +6,12 @@ import numpy as np
 
 from fm import constants
 from fm.transformer import Transformer
+from fm.utils import print_percentage
 from fm.visualizer import Visualizer
 
 # TODO:
 # 1. Add feature for rendering the borders into the animations
-# 2. Replace 2d rotations with complex multiplication to include dilations
 
-
-pixel_arrays = []
 
 transformer = Transformer()
 visualizer = Visualizer()
@@ -30,32 +28,57 @@ def main():
 
 
 def render_animation() -> None:
-    for index in range(constants.FRAME_COUNT):
-        print_frame(index)
+    pixel_arrays = []   
+
+    for frame_index in range(constants.FRAME_COUNT):
+        print_frame(frame_index)
 
         pixel_array = transformer.step()
 
         pixel_arrays.append(pixel_array)
 
-        render_debug(index, pixel_array)
+        render_debug(frame_index, pixel_array)
 
     visualizer.render_animation(pixel_arrays)
 
 
-def render_debug(index: int, pixel_array: np.ndarray) -> None:
-    if index % constants.DEBUG_INTERVAL == 0:
+def render_debug(frame_index: int, pixel_array: np.ndarray) -> None:
+    output = 0
+
+    debug_outputs = 1 if constants.DEBUG_FRAME else 0
+    debug_outputs += transformer.mode.value
+
+    print_percentage(output, debug_outputs, 'Debug')
+
+    if frame_index % constants.DEBUG_INTERVAL == 0:
         if constants.DEBUG_FRAME:
-            visualizer.render_frame(pixel_array, label=f'frame_{(index):06d}')
+            output += 1
+            
+            visualizer.render_frame(pixel_array, label=f'frame_{(frame_index):06d}')
+            
+            print_percentage(output, debug_outputs, 'Debug')
 
         if constants.DEBUG_BORDER:
             for index, generator in enumerate(transformer.generators):
-                visualizer.render_border(generator.border, label=f'border_g{index}_{index:06d}')
+                if generator.active:
+                    output += 1
+
+                    visualizer.render_border(generator.border_cells, label=f'border_g{index}_{index:06d}')
+
+                    print_percentage(output, debug_outputs, 'Debug')
+    
+    print_percentage(100, 100, 'Debug')
+    print()
+    print()
 
 
 def print_frame(index: int) -> None:
-    print(f'<======================================>')
-    print()
-    print(f'FRAME {index + 1}/{constants.FRAME_COUNT}')
+    frame_count_digits = len(str(constants.FRAME_COUNT))
+    frame_text = f' FRAME {(index + 1):0{frame_count_digits}d}/{constants.FRAME_COUNT} '
+
+    print(f'§{"=" * len(frame_text)}§')
+    print(f'§{frame_text}§')
+    print(f'§{"=" * len(frame_text)}§')
     print()
 
 
