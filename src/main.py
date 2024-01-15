@@ -6,7 +6,7 @@ import numpy as np
 
 from fm import constants
 from fm.transformer import Transformer
-from fm.utils import print_percentage
+from fm.utils import print_percentage, time_string
 from fm.visualizer import Visualizer
 
 # TODO:
@@ -24,7 +24,7 @@ def main():
 
     elapsed_seconds = time.time() - start_time
 
-    print(f'Execution Time: {get_time_string(elapsed_seconds)}')
+    print(f'Execution Time: {time_string(elapsed_seconds)}')
 
 
 def render_animation() -> None:
@@ -37,38 +37,36 @@ def render_animation() -> None:
 
         pixel_arrays.append(pixel_array)
 
-        render_debug(frame_index, pixel_array)
+        if frame_index % constants.DEBUG_INTERVAL == 0:
+            render_debug(frame_index, pixel_array)
 
     visualizer.render_animation(pixel_arrays)
 
 
 def render_debug(frame_index: int, pixel_array: np.ndarray) -> None:
     output = 0
-
-    debug_outputs = 1 if constants.DEBUG_FRAME else 0
-    debug_outputs += transformer.mode.value
+    total_outputs = int(constants.DEBUG_FRAME) + transformer.mode.value
 
     frame_count_digits = len(str(constants.FRAME_COUNT))
     frame_index_output = f'{frame_index:0{frame_count_digits}d}'
 
-    print_percentage(output, debug_outputs, 'Debug')
+    print_percentage(output, total_outputs, 'Debug')
 
-    if frame_index % constants.DEBUG_INTERVAL == 0:
-        if constants.DEBUG_FRAME:
-            output += 1
-            
-            visualizer.render_frame(pixel_array, label=f'frame_{frame_index_output}')
-            
-            print_percentage(output, debug_outputs, 'Debug')
+    if constants.DEBUG_FRAME:
+        output += 1
+        
+        visualizer.render_frame(pixel_array, label=f'frame_{frame_index_output}')
+        
+        print_percentage(output, total_outputs, 'Debug')
 
-        if constants.DEBUG_BORDER:
-            for index, generator in enumerate(transformer.generators):
-                if generator.active:
-                    output += 1
+    if constants.DEBUG_BORDER:
+        for index, generator in enumerate(transformer.generators):
+            if generator.active:
+                output += 1
 
-                    visualizer.render_border(generator.border_cells, label=f'border{index}_{frame_index_output}')
+                visualizer.render_border(generator.border_cells, label=f'border{index}_{frame_index_output}')
 
-                    print_percentage(output, debug_outputs, 'Debug')
+                print_percentage(output, total_outputs, 'Debug')
     
     print_percentage(100, 100, 'Debug')
     print()
@@ -76,20 +74,15 @@ def render_debug(frame_index: int, pixel_array: np.ndarray) -> None:
 
 
 def print_frame(index: int) -> None:
+    padding = 4
+
     frame_count_digits = len(str(constants.FRAME_COUNT))
-    frame_text = f'   FRAME {(index):0{frame_count_digits}d}/{constants.FRAME_COUNT - 1}   '
+    frame_text = f'{" " * padding}FRAME {(index):0{frame_count_digits}d}/{constants.FRAME_COUNT - 1}{" " * padding}'
 
     print(f'§{"=" * len(frame_text)}§')
     print(f'§{frame_text}§')
     print(f'§{"=" * len(frame_text)}§')
     print()
-
-
-def get_time_string(elapsed_seconds: float) -> str:
-    hours, seconds = divmod(elapsed_seconds, 3600)
-    minutes, seconds = divmod(seconds, 60)
-
-    return f"{int(hours)}:{int(minutes):02d}:{int(seconds):02d}"
     
 
 if __name__ == '__main__':

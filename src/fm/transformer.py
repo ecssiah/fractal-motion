@@ -17,25 +17,25 @@ class Transformer:
     def __init__(self) -> None:
         self.generators = [ Generator() for _ in range(3) ]
 
-        self.mode = Mode.TRIPLE
+        self.mode = Mode.SINGLE
 
         self.generators[0].active = self.mode.value >= Mode.SINGLE.value
         self.generators[1].active = self.mode.value >= Mode.DOUBLE.value
         self.generators[2].active = self.mode.value >= Mode.TRIPLE.value
 
-        self.generators[0].set_coefficients( 0.0,  1.0,  1.0)
-        self.generators[1].set_coefficients( 0.0,  0.0,  1.0)
+        self.generators[0].set_coefficients( 1.0,  1.0,  1.0)
+        self.generators[1].set_coefficients( 1.0,  0.0,  0.0)
         self.generators[2].set_coefficients( 1.0,  0.0,  0.0)
 
-        self.generators[0].set_exponents(4, 3, 2)
+        self.generators[0].set_exponents(5, 3, 2)
         self.generators[1].set_exponents(4, 3, 2)
         self.generators[2].set_exponents(4, 3, 2)
 
         self.angle = 2.0 * np.pi / constants.FRAME_COUNT
 
         self.axes = np.array([
-            [ 1.0,  0.0,  0.0 ],
-            [ 0.0, -1.0, -1.0 ],
+            [ 1.0,  1.0,  0.0 ],
+            [ 0.0,  0.0,  1.0 ],
             [ 0.0, -1.0,  1.0 ],
         ])
 
@@ -68,7 +68,6 @@ class Transformer:
             if generator.active:
                 generator.print_terms()
 
-                generator.find_border()
                 generator.calculate()
 
                 generator.coefficients = self.rotations[index] @ generator.coefficients

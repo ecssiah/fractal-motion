@@ -33,24 +33,24 @@ def imag(z: np.ndarray) -> float:
         return z[0, 1]
 
 
-def matrix_red(a: float, b: float) -> np.ndarray:
+def matrix_red(x: float, y: float) -> np.ndarray:
     return np.array([
-        [  a,  b ],
-        [  b,  a ],
+        [  x,  y ],
+        [  y,  x ],
     ])
 
 
-def matrix_green(a: float, b: float) -> np.ndarray:
+def matrix_green(x: float, y: float) -> np.ndarray:
     return np.array([
-        [  a,  0 ],
-        [  0,  b ],
+        [  x,  0 ],
+        [  0,  y ],
     ])
 
 
-def matrix_blue(a: float, b: float) -> np.ndarray:
+def matrix_blue(x: float, y: float) -> np.ndarray:
     return np.array([
-        [  a,  b ],
-        [ -b,  a ],
+        [  x,  y ],
+        [ -y,  x ],
     ])
 
 

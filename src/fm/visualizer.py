@@ -25,7 +25,7 @@ class Visualizer:
             x = int((cell_x + constants.DOMAIN_RADIUS) / constants.CELL_SIZE)
             y = int((cell_y + constants.DOMAIN_RADIUS) / constants.CELL_SIZE)
 
-            symmetric_y = 2 * constants.BORDER_MAP_RADIUS - (y + 1)
+            symmetric_y = 2 * constants.BORDER_MAP_RADIUS - 1 - y
 
             pixel_array[x, y] = 255
             pixel_array[x, symmetric_y] = 255

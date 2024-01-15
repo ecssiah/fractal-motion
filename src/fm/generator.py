@@ -20,20 +20,12 @@ class Generator:
 
         self.border_cells = []
 
-        self.corner_positions = np.array([
+        self.corner_offsets = np.array([
             [ -constants.CELL_RADIUS, -constants.CELL_RADIUS ],
             [ -constants.CELL_RADIUS,  constants.CELL_RADIUS ],
             [  constants.CELL_RADIUS, -constants.CELL_RADIUS ],
             [  constants.CELL_RADIUS,  constants.CELL_RADIUS ],
         ])
-
-
-    def find_border(self) -> None:
-        self.border_cells.clear()
-
-        cell_corners = self.test_corners()
-
-        self.locate_border(cell_corners)
 
 
     def test_corners(self) -> np.ndarray:
@@ -46,10 +38,10 @@ class Generator:
             print_percentage(i, constants.BORDER_MAP_SIZE + 1, 'Corners')
 
             for j in range(cell_corners.shape[1]):
-                a = constants.CELL_SIZE * i - constants.DOMAIN_RADIUS
-                b = constants.CELL_SIZE * j - constants.DOMAIN_RADIUS
+                x = i * constants.CELL_SIZE - constants.DOMAIN_RADIUS
+                y = j * constants.CELL_SIZE - constants.DOMAIN_RADIUS
 
-                C = chromogeometry.matrix_blue(a, b)
+                C = chromogeometry.matrix_blue(x, y)
 
                 if self.in_set(C):
                     cell_corners[i, j] = 1
@@ -74,31 +66,39 @@ class Generator:
         )
 
         for cell_index, center_x in enumerate(x_range):
-            print_percentage(cell_index, constants.BORDER_MAP_SIZE + 1, 'Cells')
+            print_percentage(cell_index, constants.BORDER_MAP_SIZE + 1, 'Border')
 
             for center_y in y_range:
                 number_of_escapes = 0
 
-                for offset_x, offset_y in self.corner_positions:
-                    x = center_x + offset_x
-                    y = center_y + offset_y
+                for offset_x, offset_y in self.corner_offsets:
+                    corner_x = center_x + offset_x
+                    corner_y = center_y + offset_y
 
-                    i = int((x + constants.DOMAIN_RADIUS) / constants.CELL_SIZE)
-                    j = int((y + constants.DOMAIN_RADIUS) / constants.CELL_SIZE)
+                    i = int((corner_x + constants.DOMAIN_RADIUS) / constants.CELL_SIZE)
+                    j = int((corner_y + constants.DOMAIN_RADIUS) / constants.CELL_SIZE)
 
                     number_of_escapes += cell_corners[i, j]
 
                 if number_of_escapes > 0 and number_of_escapes < 4:
                     self.border_cells.append((center_x, center_y))
         
-        print_percentage(100, 100, 'Cells')
+        print_percentage(100, 100, 'Border')
         print()
     
 
     def calculate(self) -> None:
         self.counts.fill(0)
+        self.border_cells.clear()
+
+        cell_corners = self.test_corners()
+
+        self.locate_border(cell_corners)
 
         for index in range(constants.POINTS):
+            if index % 1000 == 0:
+                print_percentage(index, constants.POINTS, 'Paths')
+
             path = []
 
             z = C = self.get_border_seed()
@@ -112,11 +112,9 @@ class Generator:
                     self.add_path_counts(path)
                     break
 
-            if index % 1000 == 999 or index == constants.POINTS - 1:
-                print_percentage(index, constants.POINTS, 'Paths')
-
         self.normalize()
 
+        print_percentage(100, 100, 'Paths')
         print()
         print()
 
@@ -133,8 +131,9 @@ class Generator:
 
 
     def add_path_counts(self, path: List[np.ndarray]) -> None:
-        for point in path:
-            x, y = point[0]
+        for z in path:
+            x = chromogeometry.real(z)
+            y = chromogeometry.imag(z)
 
             centered_x = x + constants.DOMAIN_RADIUS
             centered_y = y + constants.DOMAIN_RADIUS
@@ -180,19 +179,19 @@ class Generator:
         angle = np.random.uniform(0, 2 * np.pi)
         radius = np.random.uniform(0, constants.DOMAIN_RADIUS + np.finfo(float).eps)
 
-        a = radius * np.cos(angle)
-        b = radius * np.sin(angle)
+        x = radius * np.cos(angle)
+        y = radius * np.sin(angle)
 
-        return chromogeometry.matrix_blue(a, b)
+        return chromogeometry.matrix_blue(x, y)
 
 
     def get_border_seed(self) -> np.ndarray:
-        x, y = random.choice(self.border_cells)
+        cell_x, cell_y = random.choice(self.border_cells)
 
-        a = np.random.uniform(x - constants.CELL_RADIUS, x + constants.CELL_RADIUS)
-        b = np.random.uniform(y - constants.CELL_RADIUS, y + constants.CELL_RADIUS)
+        x = np.random.uniform(cell_x - constants.CELL_RADIUS, cell_x + constants.CELL_RADIUS)
+        y = np.random.uniform(cell_y - constants.CELL_RADIUS, cell_y + constants.CELL_RADIUS)
 
-        return chromogeometry.matrix_blue(a, b)
+        return chromogeometry.matrix_blue(x, y)
 
 
     def in_set(self, C: np.ndarray) -> bool:
@@ -217,3 +216,5 @@ class Generator:
             f'{abs(self.coefficients[2]):.2f}z{to_superscript(self.exponents[2])}'
             f' + C'
         )
+
+        print()
