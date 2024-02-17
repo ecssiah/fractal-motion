@@ -5,7 +5,7 @@ from typing import List, Tuple
 import imageio
 import numpy as np
 
-from fm import constants
+from fm import constants, labels
 from fm.transformer import Transformer
 from fm.utils import print_percentage
 
@@ -42,25 +42,30 @@ class Visualizer:
     def render_animation(self, pixel_arrays: List[np.ndarray]) -> None:
         filename = f'{self.directory}/fractal_{self.timestamp}.gif'
 
-        imageio.mimsave(filename, pixel_arrays, duration=100, loop=0, r=20)
+        imageio.mimsave(
+            filename, 
+            pixel_arrays, 
+            duration=100, 
+            loop=0, 
+            kwargs={ 'r': 20 }
+        )
 
 
     def render_debug(self, transformer: Transformer, frame_index: int, pixel_array: np.ndarray) -> None:
         output = 0
-        output_label = 'Debug'
         total_outputs = int(constants.DEBUG_FRAME) + transformer.mode.value
 
         frame_count_digits = len(str(constants.FRAME_COUNT))
         frame_index_output = f'{frame_index:0{frame_count_digits}d}'
 
-        print_percentage(output, total_outputs, output_label)
+        print_percentage(output, total_outputs, labels.DEBUG)
 
         if constants.DEBUG_FRAME:
             output += 1
             
             self.render_frame(pixel_array, label=f'frame_{frame_index_output}')
             
-            print_percentage(output, total_outputs, output_label)
+            print_percentage(output, total_outputs, labels.DEBUG)
 
         if constants.DEBUG_BORDER:
             for index, generator in enumerate(transformer.generators):
@@ -69,9 +74,9 @@ class Visualizer:
 
                     self.render_border(generator.border_cells, label=f'border{index}_{frame_index_output}')
 
-                    print_percentage(output, total_outputs, output_label)
+                    print_percentage(output, total_outputs, labels.DEBUG)
         
-        print_percentage(100, 100, output_label)
+        print_percentage(100, 100, labels.DEBUG)
         print()
         print()
 

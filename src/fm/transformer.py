@@ -17,39 +17,47 @@ class Transformer:
     def __init__(self) -> None:
         self.generators = [ Generator() for _ in range(3) ]
 
-        self.mode = Mode.DOUBLE
+        self.mode = Mode.SINGLE
 
         self.generators[0].active = self.mode.value >= Mode.SINGLE.value
         self.generators[1].active = self.mode.value >= Mode.DOUBLE.value
         self.generators[2].active = self.mode.value >= Mode.TRIPLE.value
 
-        self.generators[0].set_coefficients(  1.0,   0.0,   0.0)
-        self.generators[1].set_coefficients(  -1.0,  0.0,   0.0)
-        self.generators[2].set_coefficients(  1.0,   1.0,  -1.0)
+        self.generators[0].set_coefficients(  0.0,   0.0,   1.0)
+        self.generators[1].set_coefficients(  0.5,   0.5,   0.0)
+        self.generators[2].set_coefficients(  1.0,   0.0,   0.0)
 
         self.generators[0].set_exponents(4, 3, 2)
         self.generators[1].set_exponents(4, 3, 2)
         self.generators[2].set_exponents(4, 3, 2)
 
         self.angle = 2.0 * np.pi / constants.FRAME_COUNT
-        # self.angle = np.pi / 32
 
         self.axes = np.array([
-            [ 0.0,  0.0,  1.0 ],
-            [ 0.0,  0.0,  -1.0 ],
-            [ 0.0,  0.0,  1.0 ],
+            [ 0.0,  1.0,  0.0 ],
+            [ 0.0,  0.0, -1.0 ],
+            [ 1.0,  1.0,  1.0 ],
         ])
 
         self.axes /= np.linalg.norm(self.axes, axis=1, keepdims=True)
 
+        self.set_mode_weights()
+
+        self.rotations = [
+            Rotation.from_rotvec(self.angle * axis).as_matrix() 
+            for axis in self.axes 
+        ]
+
+
+    def set_mode_weights(self):
         if self.mode == Mode.SINGLE:
             self.weights = np.array([
-                [1.0, 1.0, 1.0],
+                [0.847, 0.659, 0.753],
             ])
         elif self.mode == Mode.DOUBLE:
             self.weights = np.array([
-                [1.0, 0.5, 0.0],
-                [0.0, 0.5, 1.0],
+                [1.0, 0.0, 0.5],
+                [0.0, 1.0, 0.5],
             ])
         elif self.mode == Mode.TRIPLE:
             self.weights = np.array([
@@ -57,11 +65,6 @@ class Transformer:
                 [ 0.0, 1.0, 0.0 ],
                 [ 0.0, 0.0, 1.0 ],
             ])
-
-        self.rotations = [
-            Rotation.from_rotvec(self.angle * axis).as_matrix() 
-            for axis in self.axes 
-        ]
 
 
     def step(self) -> np.ndarray:

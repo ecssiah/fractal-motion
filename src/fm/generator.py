@@ -3,8 +3,9 @@ from typing import List, Tuple
 
 import numpy as np
 
-from fm import constants
+from fm import constants, labels
 from fm import chromogeometry
+from fm.chromogeometry import Color
 from fm.utils import print_percentage, to_superscript
 
 
@@ -17,8 +18,7 @@ class Generator:
 
         self.counts = np.zeros((constants.FRAME_SIZE, constants.FRAME_SIZE), dtype=np.uint8)
         self.histogram = np.zeros((constants.FRAME_SIZE, constants.FRAME_SIZE), dtype=np.float64)
-
-        self.border_cells = []
+        self.cell_corners = np.zeros((constants.BORDER_MAP_SIZE + 1, (constants.BORDER_MAP_SIZE + 1) // 2 + 1), dtype=np.uint8)
 
         self.corner_offsets = np.array([
             [ -constants.CELL_RADIUS, -constants.CELL_RADIUS ],
@@ -27,32 +27,29 @@ class Generator:
             [  constants.CELL_RADIUS,  constants.CELL_RADIUS ],
         ])
 
+        self.border_cells = []
+
 
     def test_corners(self) -> np.ndarray:
-        cell_corners = np.zeros(
-            (constants.BORDER_MAP_SIZE + 1, (constants.BORDER_MAP_SIZE + 1) // 2 + 1), 
-            dtype=np.uint8
-        )
+        self.cell_corners.fill(0)
 
-        for i in range(cell_corners.shape[0]):
-            print_percentage(i, constants.BORDER_MAP_SIZE + 1, 'Corners')
+        for i in range(self.cell_corners.shape[0]):
+            print_percentage(i, constants.BORDER_MAP_SIZE + 1, labels.CORNERS)
 
-            for j in range(cell_corners.shape[1]):
+            for j in range(self.cell_corners.shape[1]):
                 x = i * constants.CELL_SIZE - constants.DOMAIN_RADIUS
                 y = j * constants.CELL_SIZE - constants.DOMAIN_RADIUS
 
-                C = chromogeometry.matrix_blue(x, y)
+                C = chromogeometry.matrix(x, y, Color.BLUE)
 
                 if self.in_set(C):
-                    cell_corners[i, j] = 1
+                    self.cell_corners[i, j] = 1
         
-        print_percentage(100, 100, 'Corners')
+        print_percentage(100, 100, labels.CORNERS)
         print()
-
-        return cell_corners
     
 
-    def locate_border(self, cell_corners: np.ndarray) -> None:
+    def locate_border(self) -> None:
         x_range = np.arange(
             -constants.DOMAIN_RADIUS + constants.CELL_RADIUS, 
              constants.DOMAIN_RADIUS - constants.CELL_RADIUS, 
@@ -66,7 +63,7 @@ class Generator:
         )
 
         for cell_index, center_x in enumerate(x_range):
-            print_percentage(cell_index, constants.BORDER_MAP_SIZE + 1, 'Border')
+            print_percentage(cell_index, constants.BORDER_MAP_SIZE + 1, labels.BORDERS)
 
             for center_y in y_range:
                 number_of_escapes = 0
@@ -78,12 +75,12 @@ class Generator:
                     i = int((corner_x + constants.DOMAIN_RADIUS) / constants.CELL_SIZE)
                     j = int((corner_y + constants.DOMAIN_RADIUS) / constants.CELL_SIZE)
 
-                    number_of_escapes += cell_corners[i, j]
+                    number_of_escapes += self.cell_corners[i, j]
 
                 if number_of_escapes > 0 and number_of_escapes < 4:
                     self.border_cells.append((center_x, center_y))
         
-        print_percentage(100, 100, 'Border')
+        print_percentage(100, 100, labels.BORDERS)
         print()
     
 
@@ -91,20 +88,19 @@ class Generator:
         self.counts.fill(0)
         self.border_cells.clear()
 
-        cell_corners = self.test_corners()
-
-        self.locate_border(cell_corners)
+        self.test_corners()
+        self.locate_border()
 
         for index in range(constants.POINTS):
             if index % 1000 == 0:
-                print_percentage(index, constants.POINTS, 'Paths')
+                print_percentage(index, constants.POINTS, labels.PATHS)
 
             path = []
 
             z = C = self.get_border_seed()
 
             for _ in range(constants.ITERATIONS):
-                z = self.apply_generator(z, C)
+                z = self.iterate_function(z, C)
 
                 if chromogeometry.quadrance(z) <= constants.ESCAPE_QUADRANCE:
                     path.append(z)
@@ -114,12 +110,12 @@ class Generator:
 
         self.normalize()
 
-        print_percentage(100, 100, 'Paths')
+        print_percentage(100, 100, labels.PATHS)
         print()
         print()
 
 
-    def apply_generator(self, z: np.ndarray, C: np.ndarray) -> np.ndarray:
+    def iterate_function(self, z: np.ndarray, C: np.ndarray) -> np.ndarray:
         z = chromogeometry.conjugate(z)
 
         terms = [
@@ -132,30 +128,32 @@ class Generator:
 
     def add_path_counts(self, path: List[np.ndarray]) -> None:
         for z in path:
-            x = chromogeometry.real(z)
-            y = chromogeometry.imag(z)
+            x = chromogeometry.x_component(z, Color.BLUE)
+            y = chromogeometry.y_component(z, Color.BLUE)
 
-            centered_x = x + constants.DOMAIN_RADIUS
-            centered_y = y + constants.DOMAIN_RADIUS
+            cell_x, cell_y = self.calculate_cell_coordinates(x, y)
 
-            normalized_x = centered_x / constants.DOMAIN_SIZE
-            normalized_y = centered_y / constants.DOMAIN_SIZE
-
-            cell_x = int(normalized_x * (constants.FRAME_SIZE - 1))
-            cell_y = int(normalized_y * (constants.FRAME_SIZE - 1))
-
-            in_x_bounds = cell_x >= 0 and cell_x < constants.FRAME_SIZE
-            in_y_bounds = cell_y >= 0 and cell_y < constants.FRAME_SIZE
+            in_x_bounds = 0 <= cell_x < constants.FRAME_SIZE
+            in_y_bounds = 0 <= cell_y < constants.FRAME_SIZE
 
             if in_x_bounds and in_y_bounds:
-                centered_symmetric_y = -y + constants.DOMAIN_RADIUS
-
-                normalized_symmetric_y = centered_symmetric_y / constants.DOMAIN_SIZE
-
-                cell_symmetric_y = int(normalized_symmetric_y * (constants.FRAME_SIZE - 1))
+                _, cell_symmetric_y = self.calculate_cell_coordinates(x, -y)
                 
                 self.counts[cell_x, cell_y] += 1
                 self.counts[cell_x, cell_symmetric_y] += 1
+
+    
+    def calculate_cell_coordinates(self, x: float, y: float) -> Tuple[float, float]:
+        centered_x = x + constants.DOMAIN_RADIUS
+        centered_y = y + constants.DOMAIN_RADIUS
+
+        normalized_x = centered_x / constants.DOMAIN_SIZE
+        normalized_y = centered_y / constants.DOMAIN_SIZE
+
+        cell_x = int(normalized_x * (constants.FRAME_SIZE - 1))
+        cell_y = int(normalized_y * (constants.FRAME_SIZE - 1))
+
+        return cell_x, cell_y
 
 
     def normalize(self) -> None:
@@ -182,23 +180,30 @@ class Generator:
         x = radius * np.cos(angle)
         y = radius * np.sin(angle)
 
-        return chromogeometry.matrix_blue(x, y)
+        return chromogeometry.matrix(x, y, Color.BLUE)
 
 
     def get_border_seed(self) -> np.ndarray:
         cell_x, cell_y = random.choice(self.border_cells)
 
-        x = np.random.uniform(cell_x - constants.CELL_RADIUS, cell_x + constants.CELL_RADIUS)
-        y = np.random.uniform(cell_y - constants.CELL_RADIUS, cell_y + constants.CELL_RADIUS)
 
-        return chromogeometry.matrix_blue(x, y)
+
+        min_x = cell_x - constants.CELL_RADIUS
+        max_x = cell_x + constants.CELL_RADIUS
+        min_y = cell_y - constants.CELL_RADIUS
+        max_y = cell_y + constants.CELL_RADIUS
+
+        x = np.random.uniform(min_x, max_x)
+        y = np.random.uniform(min_y, max_y)
+
+        return chromogeometry.matrix(x, y, Color.BLUE)
 
 
     def in_set(self, C: np.ndarray) -> bool:
         z = C
 
         for _ in range(constants.ITERATIONS):
-            z = self.apply_generator(z, C)
+            z = self.iterate_function(z, C)
 
             if chromogeometry.quadrance(z) > constants.ESCAPE_QUADRANCE:
                 return False

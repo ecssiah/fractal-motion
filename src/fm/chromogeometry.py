@@ -1,4 +1,11 @@
+from enum import Enum
 import numpy as np
+
+
+class Color(Enum):
+    RED = 1
+    GREEN = 2
+    BLUE = 3
 
 
 IDENTITY = np.array([
@@ -22,36 +29,40 @@ BLUE = np.array([
 ])
 
 
-def real(z: np.ndarray) -> float:
-    return z[0, 0]
+def matrix(x: float, y: float, color: Color) -> np.ndarray:
+    if color == Color.RED:
+        return np.array([
+            [  x,  y ],
+            [  y,  x ],
+        ])
+    elif color == Color.GREEN:
+        return np.array([
+            [  x,  0 ],
+            [  0,  y ],
+        ])
+    elif color == Color.BLUE:
+        return np.array([
+            [  x,  y ],
+            [ -y,  x ],
+        ])
+    
 
+def x_component(z: np.ndarray, color: Color) -> float:
+    if color == Color.RED:
+        return z[0, 0]
+    elif color == Color.GREEN:
+        return z[0, 0]
+    elif color == Color.BLUE:
+        return z[0, 0]
+    
 
-def imag(z: np.ndarray) -> float:
-    if z[0, 1] == 0:
-        return z[1, 1]
-    else:
+def y_component(z: np.ndarray, color: Color) -> float:
+    if color == Color.RED:
         return z[0, 1]
-
-
-def matrix_red(x: float, y: float) -> np.ndarray:
-    return np.array([
-        [  x,  y ],
-        [  y,  x ],
-    ])
-
-
-def matrix_green(x: float, y: float) -> np.ndarray:
-    return np.array([
-        [  x,  0 ],
-        [  0,  y ],
-    ])
-
-
-def matrix_blue(x: float, y: float) -> np.ndarray:
-    return np.array([
-        [  x,  y ],
-        [ -y,  x ],
-    ])
+    elif color == Color.GREEN:
+        return z[1, 1]    
+    elif color == Color.BLUE:
+        return z[0, 1]
 
 
 def quadrance(z: np.ndarray) -> float:

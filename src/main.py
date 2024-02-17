@@ -2,8 +2,6 @@
 
 import time
 
-import numpy as np
-
 from fm import constants
 from fm.transformer import Transformer
 from fm.utils import time_string
@@ -24,7 +22,7 @@ def main():
 
     elapsed_seconds = time.time() - start_time
 
-    print(f'Execution Time: {time_string(elapsed_seconds)}')
+    print(f'Run Time: { time_string(elapsed_seconds) }')
 
 
 def run() -> None:
