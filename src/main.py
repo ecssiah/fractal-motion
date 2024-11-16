@@ -15,16 +15,6 @@ transformer = Transformer()
 visualizer = Visualizer()
 
 
-def main():
-    start_time = time.time()
-
-    run()
-
-    elapsed_seconds = time.time() - start_time
-
-    print(f'Run Time: { time_string(elapsed_seconds) }')
-
-
 def run() -> None:
     pixel_arrays = []   
 
@@ -39,6 +29,16 @@ def run() -> None:
             visualizer.render_debug(transformer, frame_index, pixel_array)
 
     visualizer.render_animation(pixel_arrays)
+
+
+def main():
+    start_time = time.time()
+
+    run()
+
+    elapsed_seconds = time.time() - start_time
+
+    print(f'Run Time: { time_string(elapsed_seconds) }')
 
 
 if __name__ == '__main__':

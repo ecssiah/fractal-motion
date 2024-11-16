@@ -14,6 +14,7 @@ class Generator:
         self.active = True
         
         self.coefficients = np.array([1.0, 1.0, 1.0])
+
         self.exponents = np.array([4, 3, 2]).astype(int)
 
         self.counts = np.zeros((constants.FRAME_SIZE, constants.FRAME_SIZE), dtype=np.uint8)
