@@ -45,7 +45,7 @@ def matrix(x: float, y: float, color: Color) -> np.ndarray:
             [  x,  y ],
             [ -y,  x ],
         ])
-    
+
 
 def x_component(z: np.ndarray, color: Color) -> float:
     if color == Color.RED:

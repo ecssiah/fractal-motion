@@ -17,15 +17,15 @@ class Transformer:
     def __init__(self) -> None:
         self.generators = [ Generator() for _ in range(3) ]
 
-        self.mode = Mode.DOUBLE
+        self.mode = Mode.TRIPLE
 
         self.generators[0].active = self.mode.value >= Mode.SINGLE.value
         self.generators[1].active = self.mode.value >= Mode.DOUBLE.value
         self.generators[2].active = self.mode.value >= Mode.TRIPLE.value
 
-        self.generators[0].set_coefficients(  1.0,   0.0,   0.0)
-        self.generators[1].set_coefficients(  0.0,   1.0,   0.0)
-        self.generators[2].set_coefficients(  1.0,   0.0,   0.0)
+        self.generators[0].set_coefficients( -1.0,   0.0,   0.0)
+        self.generators[1].set_coefficients(  0.0,  -1.0,   0.0)
+        self.generators[2].set_coefficients(  0.0,   0.0,  -1.0)
 
         self.generators[0].set_exponents(4, 3, 2)
         self.generators[1].set_exponents(4, 3, 2)
@@ -36,7 +36,7 @@ class Transformer:
         self.axes = np.array([
             [ 0.0,  1.0,  0.0 ],
             [ 0.0,  0.0,  1.0 ],
-            [ 1.0,  1.0,  1.0 ],
+            [ 1.0,  0.0,  0.0 ],
         ])
 
         self.axes /= np.linalg.norm(self.axes, axis=1, keepdims=True)
@@ -49,7 +49,7 @@ class Transformer:
         ]
 
 
-    def set_mode_weights(self):
+    def set_mode_weights(self) -> None:
         if self.mode == Mode.SINGLE:
             self.weights = np.array([
                 [0.847, 0.659, 0.753],
@@ -79,7 +79,7 @@ class Transformer:
 
 
     def get_pixel_array(self) -> np.ndarray:
-        histogram_combined = np.zeros(
+        histogram = np.zeros(
             (constants.FRAME_SIZE, constants.FRAME_SIZE, 3), 
             dtype=np.float64
         )
@@ -87,6 +87,6 @@ class Transformer:
         for generator, weight in zip(self.generators, self.weights):
             if generator.active:
                 generator_histogram = weight * generator.histogram[:, :, np.newaxis]
-                histogram_combined += generator_histogram
+                histogram += generator_histogram
         
-        return (histogram_combined * 255).astype(np.uint8)
+        return (histogram * 255).astype(np.uint8)

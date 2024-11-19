@@ -9,6 +9,7 @@ from fm.visualizer import Visualizer
 
 # TODO:
 # 1. Add feature for rendering the borders into the animations
+# 2. 
 
 
 transformer = Transformer()

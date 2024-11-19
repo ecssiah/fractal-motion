@@ -38,17 +38,17 @@ class Generator:
             print_percentage(i, constants.BORDER_MAP_SIZE + 1, labels.CORNERS)
 
             for j in range(self.cell_corners.shape[1]):
-                x = i * constants.CELL_SIZE - constants.DOMAIN_RADIUS
-                y = j * constants.CELL_SIZE - constants.DOMAIN_RADIUS
+                x = constants.CELL_SIZE * i - constants.DOMAIN_RADIUS
+                y = constants.CELL_SIZE * j - constants.DOMAIN_RADIUS
 
                 C = chromogeometry.matrix(x, y, Color.BLUE)
 
                 if self.in_set(C):
                     self.cell_corners[i, j] = 1
-        
+
         print_percentage(100, 100, labels.CORNERS)
         print()
-    
+
 
     def locate_border(self) -> None:
         x_range = np.arange(
@@ -143,10 +143,10 @@ class Generator:
                 self.counts[cell_x, cell_y] += 1
                 self.counts[cell_x, cell_symmetric_y] += 1
 
-    
+
     def calculate_cell_coordinates(self, x: float, y: float) -> Tuple[float, float]:
-        centered_x = x + constants.DOMAIN_RADIUS
-        centered_y = y + constants.DOMAIN_RADIUS
+        centered_x = constants.DOMAIN_RADIUS + x
+        centered_y = constants.DOMAIN_RADIUS + y
 
         normalized_x = centered_x / constants.DOMAIN_SIZE
         normalized_y = centered_y / constants.DOMAIN_SIZE
@@ -186,8 +186,6 @@ class Generator:
 
     def get_border_seed(self) -> np.ndarray:
         cell_x, cell_y = random.choice(self.border_cells)
-
-
 
         min_x = cell_x - constants.CELL_RADIUS
         max_x = cell_x + constants.CELL_RADIUS
