@@ -8,15 +8,17 @@ from fm.utils import time_string
 from fm.visualizer import Visualizer
 
 # TODO:
-# 1. Add feature for rendering the borders into the animations
-# 2. 
+# 1. Optimizations
+# 2. Add feature for rendering the borders into the animations
 
 
 transformer = Transformer()
 visualizer = Visualizer()
 
 
-def run() -> None:
+def main():
+    start_time = time.time()
+
     pixel_arrays = []   
 
     for frame_index in range(1, constants.FRAME_COUNT + 1):
@@ -31,15 +33,11 @@ def run() -> None:
 
     visualizer.render_animation(pixel_arrays)
 
+    end_time = time.time()
 
-def main():
-    start_time = time.time()
+    elapsed_time_output = time_string(end_time - start_time)
 
-    run()
-
-    elapsed_seconds = time.time() - start_time
-
-    print(f'Run Time: { time_string(elapsed_seconds) }')
+    print(f'Run Time: {elapsed_time_output}')
 
 
 if __name__ == '__main__':

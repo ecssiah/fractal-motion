@@ -45,21 +45,22 @@ class Transformer:
 
 
     def set_mode_weights(self) -> None:
-        if self.mode == Mode.SINGLE:
-            self.weights = np.array([
-                [0.847, 0.659, 0.753],
-            ])
-        elif self.mode == Mode.DOUBLE:
-            self.weights = np.array([
-                [1.0, 0.0, 0.5],
-                [0.0, 1.0, 0.5],
-            ])
-        elif self.mode == Mode.TRIPLE:
-            self.weights = np.array([
-                [ 1.0, 0.0, 0.0 ],
-                [ 0.0, 1.0, 0.0 ],
-                [ 0.0, 0.0, 1.0 ],
-            ])
+        match self.mode:
+            case Mode.SINGLE:
+                self.weights = np.array([
+                    [0.847, 0.659, 0.753],
+                ])
+            case Mode.DOUBLE:
+                self.weights = np.array([
+                    [1.0, 0.0, 0.5],
+                    [0.0, 1.0, 0.5],
+                ])
+            case Mode.TRIPLE:
+                self.weights = np.array([
+                    [ 1.0, 0.0, 0.0 ],
+                    [ 0.0, 1.0, 0.0 ],
+                    [ 0.0, 0.0, 1.0 ],
+                ])
 
 
     def step(self) -> np.ndarray:

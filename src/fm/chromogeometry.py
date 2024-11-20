@@ -30,39 +30,42 @@ BLUE = np.array([
 
 
 def matrix(x: float, y: float, color: Color) -> np.ndarray:
-    if color == Color.RED:
-        return np.array([
-            [  x,  y ],
-            [  y,  x ],
-        ])
-    elif color == Color.GREEN:
-        return np.array([
-            [  x,  0 ],
-            [  0,  y ],
-        ])
-    elif color == Color.BLUE:
-        return np.array([
-            [  x,  y ],
-            [ -y,  x ],
-        ])
+    match color:
+        case Color.RED:
+            return np.array([
+                [  x,  y ],
+                [  y,  x ],
+            ])
+        case Color.GREEN:
+            return np.array([
+                [  x,  0 ],
+                [  0,  y ],
+            ])
+        case Color.BLUE:
+            return np.array([
+                [  x,  y ],
+                [ -y,  x ],
+            ])
 
 
 def x_component(z: np.ndarray, color: Color) -> float:
-    if color == Color.RED:
-        return z[0, 0]
-    elif color == Color.GREEN:
-        return z[0, 0]
-    elif color == Color.BLUE:
-        return z[0, 0]
+    match color:
+        case Color.RED:
+            return z[0, 0]
+        case Color.GREEN:
+            return z[0, 0]
+        case Color.BLUE:
+            return z[0, 0]
     
 
 def y_component(z: np.ndarray, color: Color) -> float:
-    if color == Color.RED:
-        return z[0, 1]
-    elif color == Color.GREEN:
-        return z[1, 1]    
-    elif color == Color.BLUE:
-        return z[0, 1]
+    match color:
+        case Color.RED:
+            return z[0, 1]
+        case Color.GREEN:
+            return z[1, 1]    
+        case Color.BLUE:
+            return z[0, 1]
 
 
 def quadrance(z: np.ndarray) -> float:
