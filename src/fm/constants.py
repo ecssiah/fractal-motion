@@ -1,5 +1,5 @@
 DEBUG_FRAME = True
-DEBUG_BORDER = True
+DEBUG_BORDER = False
 DEBUG_INTERVAL = 1
 
 POINTS = 2 ** 16
@@ -17,3 +17,21 @@ CELL_RADIUS = CELL_SIZE / 2
 
 FRAME_SIZE = 1024
 FRAME_COUNT = 256
+
+COEFFICIENTS = [
+    [1.0, 0.0, 0.0],
+    [1.0, 0.0, 0.0],
+    [0.0, 0.0, 1.0],
+]
+
+EXPONENTS = [
+    [4, 3, 2],
+    [4, 3, 2],
+    [4, 3, 2],
+]
+
+AXES = [
+    [0.0, 1.0, 0.0],
+    [0.0, 0.0, 1.0],
+    [1.0, 0.0, 0.0],
+]

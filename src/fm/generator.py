@@ -12,12 +12,12 @@ from fm.utils import print_percentage, to_superscript
 class Generator:
     def __init__(self) -> None:
         self.active = True
-        
+
         self.coefficients = np.array([1.0, 1.0, 1.0])
 
         self.exponents = np.array([4, 3, 2]).astype(int)
 
-        self.counts = np.zeros((constants.FRAME_SIZE, constants.FRAME_SIZE), dtype=np.uint8)
+        self.counts = np.zeros((constants.FRAME_SIZE, constants.FRAME_SIZE), dtype=np.uint32)
         self.histogram = np.zeros((constants.FRAME_SIZE, constants.FRAME_SIZE), dtype=np.float64)
         self.cell_corners = np.zeros((constants.BORDER_MAP_SIZE + 1, (constants.BORDER_MAP_SIZE + 1) // 2 + 1), dtype=np.uint8)
 
@@ -166,12 +166,12 @@ class Generator:
             self.histogram.fill(0.0)
 
 
-    def set_coefficients(self, x: float, y: float, z: float) -> None:
-        self.coefficients[:] = [x, y, z]
+    def set_coefficients(self, coefficients: List[float]) -> None:
+        self.coefficients[:] = coefficients
 
 
-    def set_exponents(self, x: int, y: int, z: int) -> None:
-        self.exponents[:] = [x, y, z]
+    def set_exponents(self, exponents: List[float]) -> None:
+        self.exponents[:] = exponents
 
 
     def get_random_seed(self) -> np.ndarray:
